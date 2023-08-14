@@ -6,6 +6,11 @@
 #include "modbus_rtu_master.h"
 
 
+#if _WIN32
+#include <Windows.h>
+#endif
+
+
 #define SLAVE_ID 0x01
 #define DETAILS  false
 
@@ -21,6 +26,8 @@ void slave_internal_error_handler();
 // Tests
 void print_test_name(const char* name, uint16_t counter);
 void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t conunter);
+void print_error(char* text);
+void print_success(char* text);
 
 
 uint8_t expected_master_result[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
@@ -169,7 +176,7 @@ int main()
     counter = 1;
     memset(expected_master_result, 0xFF, sizeof(expected_master_result));
     expected_master_result_len = sizeof(expected_master_result);
-    wait_error = true;
+    wait_error = false;
 
     printf("\nERRORS TEST:\n");
     print_test_name("%u: Trash request", counter++);
@@ -299,19 +306,9 @@ void request_data_sender(uint8_t* data, uint8_t len)
 void response_packet_handler(modbus_response_t* packet)
 {
     if (packet->status != MODBUS_NO_ERROR) {
-        char* error   = 
-            "\x1b[31mERROR"
-#if DETAILS
-            "   "
-#endif
-            ": %02x\n\x1b[0m";
-        char* success = 
-            "\x1b[32mERROR"
-#if DETAILS
-            "   "
-#endif
-            ": %02x\n\x1b[0m";
-        printf((wait_error ? success : error), packet->status);
+        char error[12] = { 0 };
+        snprintf(error, sizeof(error) - 1, "ERROR: %02x", packet->status);
+        print_error(error);
         test_error = (wait_error ? test_error : true);
         return;
     }
@@ -326,18 +323,16 @@ void response_packet_handler(modbus_response_t* packet)
     }
     printf("\n");
 #endif
+
     for (uint16_t i = 0; i < expected_master_result_len; i+=2) {
         if (expected_master_result[i] != (uint8_t)(packet->response[i / 2] >> 8) || expected_master_result[i + 1] != (uint8_t)(packet->response[i / 2])) {
-            char* red_error = "\x1b[31mERROR\n\x1b[0m";
-            char* green_error = "\x1b[32mERROR\n\x1b[0m";
-            printf((wait_error ? green_error : red_error));
+            print_error("ERROR");
             test_error = (wait_error ? test_error : true);
             return;
         }
     }
-    char* red_success = "\x1b[31mSUCCESS\n\x1b[0m";
-    char* green_success = "\x1b[32mSUCCESS\n\x1b[0m";
-    printf((wait_error ? red_success : green_success));
+
+    print_success("SUCCESS");
 }
 
 void response_data_handler(uint8_t* data, uint8_t len)
@@ -349,16 +344,43 @@ void response_data_handler(uint8_t* data, uint8_t len)
 
 void master_internal_error_handler()
 {
-    char* red_error = "\x1b[31mMASTER ERROR\n\x1b[0m";
-    char* green_error = "\x1b[32mMASTER ERROR\n\x1b[0m";
-    printf((wait_error ? green_error : red_error));
+    print_error("MASTER ERROR");
     test_error = (wait_error ? test_error : true);
 }
 
 void slave_internal_error_handler()
 {
-    char* red_error = "\x1b[31mSLAVE ERROR\n\x1b[0m";
-    char* green_error = "\x1b[32mSLAVE ERROR\n\x1b[0m";
-    printf((wait_error ? green_error : red_error));
+    print_error("SLAVE ERROR");
     test_error = (wait_error ? test_error : true);
+}
+
+
+void print_error(char* text)
+{
+#if _WIN32
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (wait_error ? FOREGROUND_GREEN : FOREGROUND_RED));
+#elif __linux__
+    printf((wait_error ? "\x1b[32m" : "\x1b[31m"));
+#endif
+    printf("%s\n", text);
+#if _WIN32
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+#elif __linux__
+    printf((wait_error ? "\x1b[0m" : "\x1b[0m"));
+#endif
+}
+
+void print_success(char* text)
+{
+#if _WIN32
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (wait_error ? FOREGROUND_RED : FOREGROUND_GREEN));
+#elif __linux__
+    printf((wait_error ? "\x1b[31m" : "\x1b[32m"));
+#endif
+    printf("%s\n", text);
+#if _WIN32
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+#elif __linux__
+    printf((wait_error ? "\x1b[0m" : "\x1b[0m"));
+#endif
 }
