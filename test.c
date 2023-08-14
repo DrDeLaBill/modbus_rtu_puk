@@ -176,7 +176,7 @@ int main()
     counter = 1;
     memset(expected_master_result, 0xFF, sizeof(expected_master_result));
     expected_master_result_len = sizeof(expected_master_result);
-    wait_error = false;
+    wait_error = true;
 
     printf("\nERRORS TEST:\n");
     print_test_name("%u: Trash request", counter++);
