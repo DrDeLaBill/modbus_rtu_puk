@@ -1,4 +1,4 @@
-name: C-Build test
+name: C-Build-Test
 
 on:
   push:
