@@ -8,13 +8,37 @@
 
 Modbus master-slave RTU library for microcontrollers.
 
+### Modbus settings
+
+You can setup modbus in ```modbus_rtu_base.h``` header:
+```C
+/* MODBUS SLAVE SETTINGS BEGIN */
+// Registers:
+#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             true
+#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              true
+#define MODBUS_ENABLE_ANALOG_INPUT_REGISTERS            true
+#define MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS   true
+#define MODBUS_REGISTER_SIZE                            16    // MODBUS default: 9999
+
+// Commands:
+#define MODBUS_ENABLE_COMMAND_READ_COIL_STATUS          true
+#define MODBUS_ENABLE_COMMAND_READ_INPUT_STATUS         true
+#define MODBUS_ENABLE_COMMAND_READ_HOLDING_REGISTERS    true
+#define MODBUS_ENABLE_COMMAND_READ_INPUT_REGISTERS      true
+#define MODBUS_ENABLE_COMMAND_FORCE_SINGLE_COIL         true
+#define MODBUS_ENABLE_COMMAND_PRESET_SINGLE_REGISTER    true
+#define MODBUS_ENABLE_COMMAND_FORCE_MULTIPLE_COILS      true
+#define MODBUS_ENABLE_COMMAND_PRESET_MULTIPLE_REGISTERS true
+/* MODBUS SLAVE SETTINGS END */
+```
+
 ### Master functions
 
 Sets user request function for sending request data array:
 
 ```modbus_master_set_request_data_sender(request_data_sender)```
 
-Sets user function that calls when modbus master has internal error:
+Sets user function that calls when modbus master has an error in request or response:
 
 ```modbus_master_set_internal_error_handler(response_error_handler)```
 
@@ -96,6 +120,44 @@ int main()
     return 0;
 }
 ```
+### Slave functions
+
+Sets user request function for sending response data array:
+
+```modbus_slave_set_response_data_handler(response_data_handler)```
+
+Sets user function that calls when modbus slave has an error in request or response:
+
+```modbus_slave_set_request_error_handler(request_error_handler)```
+
+Function that must be called when a new byte received:
+
+```modbus_slave_recieve_data_byte(new byte)```
+
+Sets modbus slave id:
+
+```modbus_slave_set_slave_id(new_slave_id)```
+
+Calls when the request waiting time is running out:
+
+```modbus_slave_timeout()```
+
+Returns slave register value:
+
+```uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t register_id)```
+
+Sets slave register value: 
+
+```modbus_slave_set_register_value(register_type_t register_type, uint16_t register_id, uint16_t value)```
+
+Values of ```register_type_t```:
+
+```
+MODBUS_REGISTER_DISCRETE_OUTPUT_COILS
+MODBUS_REGISTER_DISCRETE_INPUT_COILS
+MODBUS_REGISTER_ANALOG_INPUT_REGISTERS
+MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS
+```
 
 ### Slave example:
 ```C
@@ -123,7 +185,9 @@ int main()
     modbus_slave_set_slave_id(0x01);
     modbus_slave_set_response_data_handler(&response_data_handler);
     modbus_slave_set_request_error_handler(&slave_internal_error_handler);
-	
-	return 0;
+
+    modbus_slave_set_register_value(MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS, 0x0000, 0x1234);
+
+    return 0;
 }
 ```
