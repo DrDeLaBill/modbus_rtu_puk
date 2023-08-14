@@ -71,7 +71,7 @@ void modbus_slave_set_response_data_handler(void (*response_data_handler) (uint8
     }
 }
 
-void modbus_slave_set_request_error_handler(void (*request_error_handler) (void))
+void modbus_slave_set_internal_error_handler(void (*request_error_handler) (void))
 {
 
     if (request_error_handler != NULL) {
