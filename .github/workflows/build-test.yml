@@ -11,9 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build source code
+      - name: GCC build source code
         run : gcc -w ./*.c -o test
-      - name: Run source code
+      - name: GCC run source code
         run : ./test
-      - name: Clean build
+      - name: GCC clean build
+        run : rm -f ./test
+      - name: SDCC install
+        run : sudo apt-get -y install sdcc
+      - name: SDCC version
+        run : sdcc --version
+      - name: SDCC compile
+        run : sdcc ./*.c -o test
+      - name: SDCC clean build
         run : rm -f ./test
