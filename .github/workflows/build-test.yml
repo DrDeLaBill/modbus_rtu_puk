@@ -22,6 +22,6 @@ jobs:
       - name: SDCC version
         run : sdcc --version
       - name: SDCC compile
-        run : sdcc ./*.c -o test
+        run : sdcc ./test.c -o test
       - name: SDCC clean build
         run : rm -f ./test
