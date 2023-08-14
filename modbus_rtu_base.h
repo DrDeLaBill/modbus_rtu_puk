@@ -1,3 +1,8 @@
+/*
+ *
+ * Copyright © 2023 Georgy E. All rights reserved.
+ *
+ */
 #ifndef _MODBUS_RTU_BASE_H_
 #define _MODBUS_RTU_BASE_H_
 

@@ -1,3 +1,8 @@
+/*
+ *
+ * Copyright © 2023 Georgy E. All rights reserved.
+ *
+ */
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>

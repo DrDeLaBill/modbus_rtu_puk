@@ -1,3 +1,8 @@
+/*
+ *
+ * Copyright © 2023 Georgy E. All rights reserved.
+ *
+ */
 #ifndef _MODBUS_PROTOCOL_H_
 #define _MODBUS_PROTOCOL_H_
 

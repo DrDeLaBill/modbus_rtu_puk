@@ -1,3 +1,8 @@
+/*
+ *
+ * Copyright © 2023 Georgy E. All rights reserved.
+ *
+ */
 #include "modbus_rtu_slave.h"
 
 #include <string.h>
