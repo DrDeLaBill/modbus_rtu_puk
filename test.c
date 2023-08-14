@@ -44,7 +44,7 @@ int main()
 
     modbus_slave_set_slave_id(SLAVE_ID);
     modbus_slave_set_response_data_handler(&response_data_handler);
-    modbus_slave_set_request_error_handler(&slave_internal_error_handler);
+    modbus_slave_set_internal_error_handler(&slave_internal_error_handler);
 
     uint16_t counter = 1;
     /* READ OUTPUT COILS BEGIN */
