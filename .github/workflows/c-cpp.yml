@@ -1,0 +1,19 @@
+name: C-Build test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build source code
+        run : gcc -w ./*.c -o test
+      - name: Run source code
+        run : ./test
+      - name: Clean build
+        run : rm -f ./test
