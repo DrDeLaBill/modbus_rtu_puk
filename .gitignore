@@ -468,5 +468,7 @@ FodyWeavers.xsd
 # Custom
 x64/*
 *.vcxproj*
+bin/
+build/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,c

@@ -203,7 +203,7 @@ int main(void)
     printf("\nERRORS TEST:\n");
 #endif
     print_test_name("%u: Trash request", counter++);
-    const uint8_t trash_01[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B };
+    uint8_t trash_01[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B };
     request_data_sender(trash_01, sizeof(trash_01));
     modbus_slave_timeout();
 
@@ -252,7 +252,7 @@ int main(void)
 
 
     print_test_name("%u: Slave unexceptable multiple registers", counter++);
-    const bool error_test_03[] = { 0x001F, 0x002F, 0x003F };
+    const uint16_t error_test_03[] = { 0x001F, 0x002F, 0x003F };
     modbus_master_preset_multiple_registers(SLAVE_ID, 0xFFFF, error_test_03, 3);
 
     print_test_name("%u: Slave write unexceptable values to multiple registers", counter++);
