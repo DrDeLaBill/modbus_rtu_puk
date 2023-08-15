@@ -11,7 +11,7 @@
 #include "modbus_rtu_master.h"
 
 
-#if _WIN32
+#if _WIN32 && __GNUC__
 #include <Windows.h>
 #endif
 
@@ -22,11 +22,11 @@
 // Master
 void request_data_sender(uint8_t* data, uint8_t len);
 void response_packet_handler(modbus_response_t* packet);
-void master_internal_error_handler();
+void master_internal_error_handler(void);
 
 // Slave
 void response_data_handler(uint8_t* data, uint8_t len);
-void slave_internal_error_handler();
+void slave_internal_error_handler(void);
 
 // Tests
 void print_test_name(const char* name, uint16_t counter);
@@ -41,7 +41,7 @@ bool wait_error = false;
 bool test_error = false;
 
 
-int main()
+int main(void)
 {
     modbus_master_set_request_data_sender(&request_data_sender);
     modbus_master_set_response_packet_handler(&response_packet_handler);
@@ -383,13 +383,13 @@ void response_data_handler(uint8_t* data, uint8_t len)
     }
 }
 
-void master_internal_error_handler()
+void master_internal_error_handler(void)
 {
     print_error("MASTER ERROR");
     test_error = (wait_error ? test_error : true);
 }
 
-void slave_internal_error_handler()
+void slave_internal_error_handler(void)
 {
     print_error("SLAVE ERROR");
     test_error = (wait_error ? test_error : true);

@@ -15,8 +15,8 @@
 
 void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_addr, uint16_t spec_data);
 
-void _mb_ms_do_internal_error();
-void _mb_ms_reset_data();
+void _mb_ms_do_internal_error(void);
+void _mb_ms_reset_data(void);
 
 void _mb_ms_fsm_response_slave_id(uint8_t byte);
 void _mb_ms_fsm_response_command(uint8_t byte);
@@ -26,18 +26,18 @@ void _mb_ms_fsm_response_special_data(uint8_t byte);
 void _mb_ms_fsm_response_error(uint8_t byte);
 void _mb_ms_fsm_response_crc(uint8_t byte);
 
-void _mb_ms_response_proccess();
+void _mb_ms_response_proccess(void);
 
-uint16_t _mb_ms_get_response_bytes_count();
+uint16_t _mb_ms_get_response_bytes_count(void);
 
-bool _mb_ms_is_read_command();
-bool _mb_ms_is_write_single_reg_command();
-bool _mb_ms_is_write_multiple_reg_command();
-bool _mb_ms_is_read_discrete_reg_command();
-bool _mb_ms_is_read_analog_reg_command();
-bool _mb_ms_is_recieved_needed_slave_id();
-bool _mb_ms_check_response_command();
-bool _mb_ms_check_response_crc();
+bool _mb_ms_is_read_command(void);
+bool _mb_ms_is_write_single_reg_command(void);
+bool _mb_ms_is_write_multiple_reg_command(void);
+bool _mb_ms_is_read_discrete_reg_command(void);
+bool _mb_ms_is_read_analog_reg_command(void);
+bool _mb_ms_is_recieved_needed_slave_id(void);
+bool _mb_ms_check_response_command(void);
+bool _mb_ms_check_response_crc(void);
 
 void _mb_ms_make_read_discrete_packet(modbus_response_t* packet);
 void _mb_ms_make_read_analog_packet(modbus_response_t* packet);
@@ -101,7 +101,7 @@ void modbus_master_recieve_data_byte(uint8_t byte)
 	}
 }
 
-void modbus_master_timeout()
+void modbus_master_timeout(void)
 {
 	_mb_ms_do_internal_error();
 	_mb_ms_reset_data();
@@ -284,7 +284,7 @@ void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_
 }
 
 
-void _mb_ms_response_proccess()
+void _mb_ms_response_proccess(void)
 {
 	if (!_mb_ms_is_recieved_needed_slave_id()) {
 		_mb_ms_reset_data();
@@ -336,7 +336,7 @@ do_response_packet_handler:
 	_mb_ms_reset_data();
 }
 
-void _mb_ms_reset_data()
+void _mb_ms_reset_data(void)
 {
 	memset((uint8_t*)&mb_master_state.data_req, 0, sizeof(mb_master_state.data_req));
 	memset((uint8_t*)&mb_master_state.data_resp, 0, sizeof(mb_master_state.data_resp));
@@ -347,7 +347,7 @@ void _mb_ms_reset_data()
 	mb_master_state.response_bytes_len = 0;
 }
 
-void _mb_ms_do_internal_error()
+void _mb_ms_do_internal_error(void)
 {
 	if (mb_master_state.internal_error_handler != NULL) {
 		mb_master_state.internal_error_handler();
@@ -470,7 +470,7 @@ do_reset_data:
 	_mb_ms_reset_data();
 }
 
-uint16_t _mb_ms_get_response_bytes_count()
+uint16_t _mb_ms_get_response_bytes_count(void)
 {
 #if MODBUS_ENABLE_FORCE_SINGLE_COIL || MODBUS_ENABLE_PRESET_SINGLE_REGISTER || MODBUS_ENABLE_FORCE_MULTIPLE_COILS || MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS
 	if (!_mb_ms_is_read_command()) {
@@ -485,41 +485,41 @@ uint16_t _mb_ms_get_response_bytes_count()
 	return 0;
 }
 
-bool _mb_ms_is_read_command()
+bool _mb_ms_is_read_command(void)
 {
 	return mb_master_state.data_resp.command == MODBUS_READ_COILS || mb_master_state.data_resp.command == MODBUS_READ_HOLDING_REGISTERS || mb_master_state.data_resp.command == MODBUS_READ_INPUT_REGISTERS || mb_master_state.data_resp.command == MODBUS_READ_INPUT_STATUS;
 }
 
-bool _mb_ms_is_write_single_reg_command()
+bool _mb_ms_is_write_single_reg_command(void)
 {
 	return mb_master_state.data_resp.command == MODBUS_FORCE_SINGLE_COIL || mb_master_state.data_resp.command == MODBUS_PRESET_SINGLE_REGISTER;
 }
 
-bool _mb_ms_is_write_multiple_reg_command()
+bool _mb_ms_is_write_multiple_reg_command(void)
 {
 	return mb_master_state.data_resp.command == MODBUS_FORCE_MULTIPLE_COILS || mb_master_state.data_resp.command == MODBUS_PRESET_MULTIPLE_REGISTERS;
 }
 
-bool _mb_ms_is_read_discrete_reg_command()
+bool _mb_ms_is_read_discrete_reg_command(void)
 {
 	return mb_master_state.data_resp.command == MODBUS_READ_COILS || mb_master_state.data_resp.command == MODBUS_READ_INPUT_STATUS;
 }
 
-bool _mb_ms_is_read_analog_reg_command()
+bool _mb_ms_is_read_analog_reg_command(void)
 {
 	return mb_master_state.data_resp.command == MODBUS_READ_HOLDING_REGISTERS || mb_master_state.data_resp.command == MODBUS_READ_INPUT_REGISTERS;
 }
 
-bool _mb_ms_is_recieved_needed_slave_id()
+bool _mb_ms_is_recieved_needed_slave_id(void)
 {
 	return mb_master_state.data_req.id == mb_master_state.data_resp.id;
 }
 
-bool _mb_ms_check_response_crc() {
+bool _mb_ms_check_response_crc(void) {
 	return mb_master_state.data_resp.crc == modbus_crc16(mb_master_state.response_bytes, mb_master_state.response_bytes_len - sizeof(uint16_t));
 }
 
-bool _mb_ms_check_response_command()
+bool _mb_ms_check_response_command(void)
 {
 	return false
 #if MODBUS_ENABLE_READ_COIL_STATUS

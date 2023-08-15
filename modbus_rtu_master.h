@@ -54,7 +54,7 @@ extern "C" {
     void modbus_master_set_response_packet_handler(void (*response_packet_handler) (modbus_response_t*));
 
     void modbus_master_recieve_data_byte(uint8_t byte);
-    void modbus_master_timeout();
+    void modbus_master_timeout(void);
 
     void modbus_master_read_coils(uint8_t slave_id, uint16_t reg_addr, uint16_t reg_count);
     void modbus_master_read_input_status(uint8_t slave_id, uint16_t reg_addr, uint16_t reg_count);

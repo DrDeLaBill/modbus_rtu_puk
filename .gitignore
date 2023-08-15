@@ -452,6 +452,19 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
+### Sdcc ###
+# SDCC stuff
+*.lnk
+*.lst
+*.map
+*.mem
+*.rel
+*.rst
+*.sym
+*.asm
+*ihx
+*.lk
+
 # Custom
 x64/*
 *.vcxproj*

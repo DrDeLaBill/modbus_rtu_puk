@@ -34,7 +34,7 @@ extern "C" {
     void modbus_slave_set_internal_error_handler(void (*request_error_handler) (void));
     void modbus_slave_recieve_data_byte(uint8_t byte);
     void modbus_slave_set_slave_id(uint8_t new_slave_id);
-    void modbus_slave_timeout();
+    void modbus_slave_timeout(void);
 
     uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t register_id);
     void modbus_slave_set_register_value(register_type_t register_type, uint16_t register_id, uint16_t value);

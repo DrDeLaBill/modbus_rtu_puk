@@ -27,8 +27,8 @@ uint16_t mb_analog_output_holding_registers[MODBUS_REGISTER_SIZE] = { 0 };
 #endif
 
 
-void _mb_sl_do_internal_error();
-void _mb_sl_reset_data();
+void _mb_sl_do_internal_error(void);
+void _mb_sl_reset_data(void);
 
 void _mb_sl_fsm_request_slave_id(uint8_t byte);
 void _mb_sl_fsm_request_command(uint8_t byte);
@@ -36,25 +36,25 @@ void _mb_sl_fsm_request_register_addr(uint8_t byte);
 void _mb_sl_fsm_request_special_data(uint8_t byte);
 void _mb_sl_fsm_request_crc(uint8_t byte);
 
-void _mb_sl_request_proccess();
-void _mb_sl_write_single_register();
-void _mb_sl_write_multiple_registers();
+void _mb_sl_request_proccess(void);
+void _mb_sl_write_single_register(void);
+void _mb_sl_write_multiple_registers(void);
 void _mb_sl_make_error_response(modbus_error_types_t error_type);
-void _mb_sl_send_response();
+void _mb_sl_send_response(void);
 
-bool _mb_sl_is_read_command();
-bool _mb_sl_is_write_single_reg_command();
-bool _mb_sl_is_write_multiple_reg_command();
-bool _mb_sl_is_recieved_own_slave_id();
-bool _mb_sl_check_request_command();
-bool _mb_sl_check_request_register_addr();
-bool _mb_sl_check_request_registers_count();
-uint16_t _mb_sl_get_special_data_first_value();
-uint16_t _mb_sl_get_needed_registers_count();
+bool _mb_sl_is_read_command(void);
+bool _mb_sl_is_write_single_reg_command(void);
+bool _mb_sl_is_write_multiple_reg_command(void);
+bool _mb_sl_is_recieved_own_slave_id(void);
+bool _mb_sl_check_request_command(void);
+bool _mb_sl_check_request_register_addr(void);
+bool _mb_sl_check_request_registers_count(void);
+uint16_t _mb_sl_get_special_data_first_value(void);
+uint16_t _mb_sl_get_needed_registers_count(void);
 
-void _mb_sl_make_read_response();
-void _mb_sl_make_write_single_response();
-void _mb_sl_make_write_multiple_response();
+void _mb_sl_make_read_response(void);
+void _mb_sl_make_write_single_response(void);
+void _mb_sl_make_write_multiple_response(void);
 
 
 modbus_slave_state_t mb_slave_state = {
@@ -101,7 +101,7 @@ void modbus_slave_set_slave_id(uint8_t new_slave_id)
     _mb_sl_reset_data();
 }
 
-void modbus_slave_timeout()
+void modbus_slave_timeout(void)
 {
     _mb_sl_do_internal_error();
     _mb_sl_reset_data();
@@ -163,7 +163,7 @@ void modbus_slave_set_register_value(register_type_t register_type, uint16_t reg
 #endif
 }
 
-void _mb_sl_request_proccess()
+void _mb_sl_request_proccess(void)
 {
     if (!_mb_sl_is_recieved_own_slave_id()) {
         _mb_sl_reset_data();
@@ -231,7 +231,7 @@ void _mb_sl_make_error_response(modbus_error_types_t error_type)
     mb_slave_state.data_resp.data_resp[0] = error_type;
 }
 
-void _mb_sl_send_response()
+void _mb_sl_send_response(void)
 {
     if (mb_slave_state.response_data_handler == NULL) {
         _mb_sl_do_internal_error();
@@ -255,7 +255,7 @@ void _mb_sl_send_response()
     mb_slave_state.response_data_handler(data, counter);
 }
 
-void _mb_sl_write_single_register()
+void _mb_sl_write_single_register(void)
 {
 #if MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
     if (mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL) {
@@ -269,7 +269,7 @@ void _mb_sl_write_single_register()
 #endif
 }
 
-void _mb_sl_write_multiple_registers()
+void _mb_sl_write_multiple_registers(void)
 {
     uint16_t count = _mb_sl_get_special_data_first_value();
     if (mb_slave_state.data_req.register_addr >= MODBUS_REGISTER_SIZE) {
@@ -298,7 +298,7 @@ void _mb_sl_write_multiple_registers()
 #endif
 }
 
-void _mb_sl_reset_data()
+void _mb_sl_reset_data(void)
 {
     memset((uint8_t*)&mb_slave_state.data_req, 0, sizeof(mb_slave_state.data_req));
     memset((uint8_t*)&mb_slave_state.data_resp, 0, sizeof(mb_slave_state.data_resp));
@@ -308,14 +308,14 @@ void _mb_sl_reset_data()
     mb_slave_state.data_handler_counter = 0;
 }
 
-void _mb_sl_do_internal_error()
+void _mb_sl_do_internal_error(void)
 {
     if (mb_slave_state.internal_error_handler != NULL) {
         mb_slave_state.internal_error_handler();
     }
 }
 
-void _mb_sl_make_read_response()
+void _mb_sl_make_read_response(void)
 {
     uint8_t command = mb_slave_state.data_req.command;
     uint8_t req_data_len = _mb_sl_get_special_data_first_value();
@@ -359,7 +359,7 @@ void _mb_sl_make_read_response()
     mb_slave_state.data_resp.data_resp[0] = resp_data_len;
 }
 
-void _mb_sl_make_write_single_response()
+void _mb_sl_make_write_single_response(void)
 {
     uint8_t counter = 0;
 
@@ -385,7 +385,7 @@ void _mb_sl_make_write_single_response()
     mb_slave_state.data_resp.data_len = counter;
 }
 
-void _mb_sl_make_write_multiple_response()
+void _mb_sl_make_write_multiple_response(void)
 {
     uint8_t counter = 0;
 
@@ -480,27 +480,27 @@ do_reset_data:
     _mb_sl_reset_data();
 }
 
-bool _mb_sl_is_read_command()
+bool _mb_sl_is_read_command(void)
 {
     return mb_slave_state.data_req.command == MODBUS_READ_COILS || mb_slave_state.data_req.command == MODBUS_READ_HOLDING_REGISTERS || mb_slave_state.data_req.command == MODBUS_READ_INPUT_REGISTERS || mb_slave_state.data_req.command == MODBUS_READ_INPUT_STATUS;
 }
 
-bool _mb_sl_is_write_single_reg_command()
+bool _mb_sl_is_write_single_reg_command(void)
 {
     return mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL || mb_slave_state.data_req.command == MODBUS_PRESET_SINGLE_REGISTER;
 }
 
-bool _mb_sl_is_write_multiple_reg_command()
+bool _mb_sl_is_write_multiple_reg_command(void)
 {
     return mb_slave_state.data_req.command == MODBUS_FORCE_MULTIPLE_COILS || mb_slave_state.data_req.command == MODBUS_PRESET_MULTIPLE_REGISTERS;
 }
 
-bool _mb_sl_is_recieved_own_slave_id()
+bool _mb_sl_is_recieved_own_slave_id(void)
 {
     return mb_slave_state.slave_id == mb_slave_state.data_req.id;
 }
 
-bool _mb_sl_check_request_command()
+bool _mb_sl_check_request_command(void)
 {
     return false
 #if MODBUS_ENABLE_READ_COIL_STATUS
@@ -530,12 +530,12 @@ bool _mb_sl_check_request_command()
         ;
 }
 
-bool _mb_sl_check_request_register_addr()
+bool _mb_sl_check_request_register_addr(void)
 {
     return mb_slave_state.data_req.register_addr < MODBUS_REGISTER_SIZE;
 }
 
-bool _mb_sl_check_request_registers_count()
+bool _mb_sl_check_request_registers_count(void)
 {
     uint16_t reg_count = _mb_sl_get_needed_registers_count();
     uint8_t data_count = mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT - 1];
@@ -545,14 +545,14 @@ bool _mb_sl_check_request_registers_count()
         && SPECIAL_DATA_META_COUNT + data_count <= sizeof(mb_slave_state.data_req.special_data);
 }
 
-uint16_t _mb_sl_get_special_data_first_value()
+uint16_t _mb_sl_get_special_data_first_value(void)
 {
     uint8_t regh = mb_slave_state.data_req.special_data[SPECIAL_DATA_REGISTERS_COUNT_IDX];
     uint8_t regl = mb_slave_state.data_req.special_data[SPECIAL_DATA_REGISTERS_COUNT_IDX + 1];
     return (uint16_t)(((uint16_t)regh) << 8) + (uint16_t)regl;
 }
 
-uint16_t _mb_sl_get_needed_registers_count()
+uint16_t _mb_sl_get_needed_registers_count(void)
 {
 #if MODBUS_ENABLE_FORCE_SINGLE_COIL || MODBUS_ENABLE_PRESET_SINGLE_REGISTER
     if (_mb_sl_is_write_single_reg_command()) {
