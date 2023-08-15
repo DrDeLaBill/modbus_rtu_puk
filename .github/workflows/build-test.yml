@@ -11,22 +11,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: GCC build source code
-        run : gcc -w ./*.c -o test
-      - name: GCC run source code
-        run : ./test
-      - name: GCC clean build
-        run : rm -f ./test
-      - name: SDCC install
-        run : sudo apt-get -y install sdcc
-      - name: SDCC version
-        run : sdcc --version
-      - name: SDCC compile
+      - name: Install packages
         run : |
-          sdcc --model-large --stack-auto -c modbus_rtu_base.c
-          sdcc --model-large --stack-auto -c modbus_rtu_slave.c modbus_rtu_base.rel
-          sdcc --model-large --stack-auto -c modbus_rtu_master.c modbus_rtu_base.rel
-          sdcc --model-large --stack-auto -c test.c
-          sdcc --model-large test.rel modbus_rtu_base.rel modbus_rtu_slave.rel modbus_rtu_master.rel
+          sudo apt-get -y install sdcc
+          sudo apt-get -y install make
+          sudo apt-get -y install cmake
+      - name: GCC build and run
+        run : |
+          mkdir ./build
+          cd ./build
+          cmake ..
+          make
+          ./cmake_test
+      - name: GCC clean build
+        run : rm -rf ./build/*
+      - name: SDCC build
+        run :  |
+          cd ./build
+          cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-sdcc.cmake -DMODE_SDCC=1 ..
+          make
       - name: SDCC clean build
-        run : rm -f *.asm *.lk *ihx *.lst *.rel *.rst *.sym *.map *.mem
+        run : rm -rf ./build/*
