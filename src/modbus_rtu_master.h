@@ -62,8 +62,8 @@ extern "C" {
     void modbus_master_read_input_registers(uint8_t slave_id, uint16_t reg_addr, uint16_t reg_count);
     void modbus_master_force_single_coil(uint8_t slave_id, uint16_t reg_addr, uint16_t reg_val);
     void modbus_master_preset_single_register(uint8_t slave_id, uint16_t reg_addr, uint16_t reg_val);
-    void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, bool* data, uint16_t reg_count);
-    void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr, uint16_t* data, uint16_t reg_count);
+    void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, const bool* data, uint16_t reg_count);
+    void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr, const uint16_t* data, uint16_t reg_count);
 
 
 #ifdef __cplusplus

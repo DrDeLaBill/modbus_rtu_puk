@@ -137,7 +137,7 @@ void modbus_master_preset_single_register(uint8_t slave_id, uint16_t reg_addr, u
 	_mb_ms_send_simple_message(slave_id, MODBUS_PRESET_SINGLE_REGISTER, reg_addr, reg_val);
 }
 
-void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, bool* data, uint16_t reg_count)
+void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, const bool* data, uint16_t reg_count)
 {
 	if (reg_count == 0 || data == NULL) {
 		_mb_ms_do_internal_error();
@@ -195,7 +195,7 @@ void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, boo
 	mb_master_state.request_data_sender(request, counter);
 }
 
-void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr, uint16_t* data, uint16_t reg_count)
+void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr, const uint16_t* data, uint16_t reg_count)
 {
 	if (reg_count == 0 || data == NULL) {
 		_mb_ms_do_internal_error();
