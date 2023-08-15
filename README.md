@@ -192,10 +192,10 @@ int main()
 }
 ```
 
-### SDCC compiling example
+### SDCC test compile
 
 ```
-sdcc --stack-auto -c modbus_rtu_base.c
-sdcc --stack-auto -c modbus_rtu_slave.c modbus_rtu_base.rel
-sdcc --stack-auto -c modbus_rtu_master.c modbus_rtu_base.rel
+cd <project path>/build
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-sdcc.cmake -DMODE_SDCC=1 ..
+make
 ```
