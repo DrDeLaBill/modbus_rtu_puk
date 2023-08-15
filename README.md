@@ -191,3 +191,11 @@ int main()
     return 0;
 }
 ```
+
+### SDCC compiling example
+
+```
+sdcc --stack-auto -c modbus_rtu_base.c
+sdcc --stack-auto -c modbus_rtu_slave.c modbus_rtu_base.rel
+sdcc --stack-auto -c modbus_rtu_master.c modbus_rtu_base.rel
+```
