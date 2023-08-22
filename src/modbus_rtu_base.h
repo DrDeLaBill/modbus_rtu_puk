@@ -17,8 +17,8 @@ extern "C" {
 
 /* MODBUS SLAVE SETTINGS BEGIN */
 // Registers:
-#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             false
-#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              false
+#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             true
+#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              true
 #define MODBUS_ENABLE_ANALOG_INPUT_REGISTERS            true
 #define MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS   true
 #define MODBUS_REGISTER_SIZE                            16    // MODBUS default: 9999

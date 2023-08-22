@@ -327,6 +327,7 @@ void _mb_sl_do_internal_error(void)
     if (mb_slave_state.internal_error_handler != NULL) {
         mb_slave_state.internal_error_handler();
     }
+    modbus_slave_clear_data();
 }
 
 void _mb_sl_make_read_response(void)
@@ -487,7 +488,7 @@ do_count_special_data:
 
     if (_mb_sl_is_write_multiple_reg_command()) {
         needed_count_bytes = SPECIAL_DATA_META_COUNT + mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT - 1];
-        needed_count += 1;
+        needed_count = SPECIAL_DATA_VALUE_SIZE + 1;
     }
 
     if (mb_slave_state.data_handler_counter == needed_count_bytes) {
@@ -499,7 +500,7 @@ do_count_special_data:
         return;
     }
 
-    if (cur_count < needed_count) {
+    if (cur_count <= needed_count) {
         return;
     }
 
@@ -616,7 +617,7 @@ uint16_t _mb_sl_get_needed_registers_count(void)
     }
 #endif
 #if MODBUS_ENABLE_READ_COIL_STATUS || MODBUS_ENABLE_READ_INPUT_STATUS || MODBUS_ENABLE_READ_HOLDING_REGISTERS || MODBUS_ENABLE_READ_INPUT_REGISTERS || MODBUS_ENABLE_FORCE_MULTIPLE_COILS || MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS
-    if (_mb_sl_is_read_command() || _mb_sl_is_write_single_reg_command()) {
+    if (_mb_sl_is_read_command() || _mb_sl_is_write_multiple_reg_command()) {
         return _mb_sl_get_special_data_first_value();
     }
 #endif
