@@ -15,7 +15,6 @@
 #include <Windows.h>
 #endif
 
-
 #define SLAVE_ID 0x01
 #define DETAILS  false
 
@@ -37,8 +36,9 @@ void print_success(char* text);
 
 uint8_t expected_master_result[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
 uint16_t  expected_master_result_len = 0;
-bool wait_error = false;
-bool test_error = false;
+bool wait_error     = false;
+bool test_error     = false;
+bool response_ready = false;
 
 
 int main(void)
@@ -336,12 +336,17 @@ void request_data_sender(uint8_t* data, uint8_t len)
 #endif
 #endif
     for (int i = 0; i < len; i++) {
+        if (response_ready) {
+            break;
+        }
         modbus_slave_recieve_data_byte(data[i]);
     }
+    response_ready = false;
 }
 
 void response_packet_handler(modbus_response_t* packet)
 {
+    response_ready = true;
     if (packet->status != MODBUS_NO_ERROR) {
 #ifdef __GNUC__
         char error[12] = { 0 };
