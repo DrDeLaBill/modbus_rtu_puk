@@ -17,8 +17,8 @@ extern "C" {
 
 /* MODBUS SLAVE SETTINGS BEGIN */
 // Registers:
-#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             true
-#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              true
+#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             false
+#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              false
 #define MODBUS_ENABLE_ANALOG_INPUT_REGISTERS            true
 #define MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS   true
 #define MODBUS_REGISTER_SIZE                            16    // MODBUS default: 9999
@@ -54,35 +54,35 @@ extern "C" {
 
 
 typedef enum _modbus_command_t {
-    MODBUS_READ_COILS = (uint8_t)0x01,
-    MODBUS_READ_INPUT_STATUS = (uint8_t)0x02,
-    MODBUS_READ_HOLDING_REGISTERS = (uint8_t)0x03,
-    MODBUS_READ_INPUT_REGISTERS = (uint8_t)0x04,
-    MODBUS_FORCE_SINGLE_COIL = (uint8_t)0x05,
-    MODBUS_PRESET_SINGLE_REGISTER = (uint8_t)0x06,
-    MODBUS_FORCE_MULTIPLE_COILS = (uint8_t)0x0F,
+    MODBUS_READ_COILS                = (uint8_t)0x01,
+    MODBUS_READ_INPUT_STATUS         = (uint8_t)0x02,
+    MODBUS_READ_HOLDING_REGISTERS    = (uint8_t)0x03,
+    MODBUS_READ_INPUT_REGISTERS      = (uint8_t)0x04,
+    MODBUS_FORCE_SINGLE_COIL         = (uint8_t)0x05,
+    MODBUS_PRESET_SINGLE_REGISTER    = (uint8_t)0x06,
+    MODBUS_FORCE_MULTIPLE_COILS      = (uint8_t)0x0F,
     MODBUS_PRESET_MULTIPLE_REGISTERS = (uint8_t)0x10
 } modbus_command_t;
 
 
 typedef enum _register_type_t {
-    MODBUS_REGISTER_DISCRETE_OUTPUT_COILS = (uint8_t)0x01,
-    MODBUS_REGISTER_DISCRETE_INPUT_COILS = (uint8_t)0x02,
-    MODBUS_REGISTER_ANALOG_INPUT_REGISTERS = (uint8_t)0x03,
+    MODBUS_REGISTER_DISCRETE_OUTPUT_COILS           = (uint8_t)0x01,
+    MODBUS_REGISTER_DISCRETE_INPUT_COILS            = (uint8_t)0x02,
+    MODBUS_REGISTER_ANALOG_INPUT_REGISTERS          = (uint8_t)0x03,
     MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS = (uint8_t)0x04
 } register_type_t;
 
 
 typedef enum _modbus_error_types_t {
-    MODBUS_ERROR_ILLEGAL_FUNCTION = (uint8_t)0x01,
-    MODBUS_ERROR_ILLEGAL_DATA_ADDRESS = (uint8_t)0x02,
-    MODBUS_ERROR_ILLEGAL_DATA_VALUE = (uint8_t)0x03,
-    MODBUS_ERROR_SLAVE_DEVICE_FAILURE = (uint8_t)0x04,
-    MODBUS_ERROR_ACKNOWLEDGE = (uint8_t)0x05,
-    MODBUS_ERROR_SLAVE_DEVICE_BUSY = (uint8_t)0x06,
-    MODBUS_ERROR_MEMORY_PARITY = (uint8_t)0x08,
+    MODBUS_ERROR_ILLEGAL_FUNCTION         = (uint8_t)0x01,
+    MODBUS_ERROR_ILLEGAL_DATA_ADDRESS     = (uint8_t)0x02,
+    MODBUS_ERROR_ILLEGAL_DATA_VALUE       = (uint8_t)0x03,
+    MODBUS_ERROR_SLAVE_DEVICE_FAILURE     = (uint8_t)0x04,
+    MODBUS_ERROR_ACKNOWLEDGE              = (uint8_t)0x05,
+    MODBUS_ERROR_SLAVE_DEVICE_BUSY        = (uint8_t)0x06,
+    MODBUS_ERROR_MEMORY_PARITY            = (uint8_t)0x08,
     MODBUS_ERROR_GATEWAY_PATH_UNAVAILABLE = (uint8_t)0x0A,
-    MODBUS_ERROR_FAILED_TO_RESPOND = (uint8_t)0x0B
+    MODBUS_ERROR_FAILED_TO_RESPOND        = (uint8_t)0x0B
 } modbus_error_types_t;
 
 
