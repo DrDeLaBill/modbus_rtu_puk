@@ -58,7 +58,7 @@ modbus_master_state_t mb_master_state = {
 };
 
 
-void modbus_master_set_request_data_sender(void (*request_data_sender) (uint8_t*, uint8_t))
+void modbus_master_set_request_data_sender(void (*request_data_sender) (uint8_t*, uint32_t))
 {
 	if (request_data_sender != NULL) {
 		mb_master_state.request_data_sender = request_data_sender;

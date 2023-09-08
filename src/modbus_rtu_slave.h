@@ -20,7 +20,7 @@ extern "C" {
 
 typedef struct _modbus_slave_state_t {
     uint8_t slave_id;
-    void (*response_data_handler) (uint8_t*, uint8_t);
+    void (*response_data_handler) (uint8_t*, uint32_t);
     void (*request_byte_handler) (uint8_t);
     void (*internal_error_handler) (void);
     modbus_request_message_t data_req;
@@ -33,7 +33,7 @@ typedef struct _modbus_slave_state_t {
 } modbus_slave_state_t;
 
 
-void modbus_slave_set_response_data_handler(void (*response_data_handler) (uint8_t*, uint8_t));
+void modbus_slave_set_response_data_handler(void (*response_data_handler) (uint8_t*, uint32_t));
 void modbus_slave_set_internal_error_handler(void (*request_error_handler) (void));
 void modbus_slave_recieve_data_byte(uint8_t byte);
 void modbus_slave_set_slave_id(uint8_t new_slave_id);

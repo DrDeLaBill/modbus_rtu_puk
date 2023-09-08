@@ -71,7 +71,7 @@ modbus_slave_state_t mb_slave_state = {
 };
 
 
-void modbus_slave_set_response_data_handler(void (*response_data_handler) (uint8_t*, uint8_t))
+void modbus_slave_set_response_data_handler(void (*response_data_handler) (uint8_t*, uint32_t))
 {
     if (response_data_handler != NULL) {
         mb_slave_state.response_data_handler = response_data_handler;
