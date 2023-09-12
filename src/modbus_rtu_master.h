@@ -36,7 +36,7 @@ extern "C" {
 
 
     typedef struct _modbus_master_state_t {
-        void (*request_data_sender) (uint8_t*, uint8_t);
+        void (*request_data_sender) (uint8_t*, uint32_t);
         void (*response_byte_handler) (uint8_t);
         void (*response_packet_handler) (modbus_response_t*);
         void (*internal_error_handler) (void);
@@ -49,7 +49,7 @@ extern "C" {
     } modbus_master_state_t;
 
 
-    void modbus_master_set_request_data_sender(void (*request_data_sender) (uint8_t*, uint8_t));
+    void modbus_master_set_request_data_sender(void (*request_data_sender) (uint8_t*, uint32_t));
     void modbus_master_set_internal_error_handler(void (*response_error_handler) (void));
     void modbus_master_set_response_packet_handler(void (*response_packet_handler) (modbus_response_t*));
 
