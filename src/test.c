@@ -24,7 +24,7 @@ void response_packet_handler(modbus_response_t* packet);
 void master_internal_error_handler(void);
 
 // Slave
-void response_data_handler(uint8_t* data, uint8_t len);
+void response_data_handler(uint8_t* data, uint32_t len);
 void slave_internal_error_handler(void);
 
 // Tests
@@ -381,7 +381,7 @@ void response_packet_handler(modbus_response_t* packet)
     print_success("SUCCESS");
 }
 
-void response_data_handler(uint8_t* data, uint8_t len)
+void response_data_handler(uint8_t* data, uint32_t len)
 {
     for (int i = 0; i < len; i++) {
         modbus_master_recieve_data_byte(data[i]);
