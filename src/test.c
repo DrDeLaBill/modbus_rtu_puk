@@ -29,7 +29,7 @@ void slave_internal_error_handler(void);
 
 // Tests
 void print_test_name(const char* name, uint16_t counter);
-void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t conunter);
+void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t conunter, uint32_t registers_count);
 void print_error(char* text);
 void print_success(char* text);
 
@@ -56,7 +56,7 @@ int main(void)
 #ifdef __GNUC__
     printf("\nREAD OUTPUT COILS TESTS:\n");
 #endif
-    base_read_tests(modbus_master_read_coils, counter);
+    base_read_tests(modbus_master_read_coils, counter, MODBUS_SLAVE_OUTPUT_COILS_COUNT);
     counter += 5;
 
     modbus_slave_set_register_value(MODBUS_REGISTER_DISCRETE_OUTPUT_COILS, 0, 1);
@@ -75,7 +75,7 @@ int main(void)
     printf("\nREAD INPUT COILS TESTS:\n");
 #endif
     counter = 1;
-    base_read_tests(modbus_master_read_input_status, counter);
+    base_read_tests(modbus_master_read_input_status, counter, MODBUS_SLAVE_INPUT_COILS_COUNT);
     counter += 5;
 
     modbus_slave_set_register_value(MODBUS_REGISTER_DISCRETE_INPUT_COILS, 0, 2);
@@ -94,7 +94,7 @@ int main(void)
     printf("\nREAD INPUT REGISTERS TESTS:\n");
 #endif
     counter = 1;
-    base_read_tests(modbus_master_read_input_registers, counter);
+    base_read_tests(modbus_master_read_input_registers, counter, MODBUS_SLAVE_INPUT_REGISTERS_COUNT);
     counter += 5;
 
     modbus_slave_set_register_value(MODBUS_REGISTER_ANALOG_INPUT_REGISTERS, 0, 4);
@@ -113,7 +113,7 @@ int main(void)
     printf("\nREAD OUTPUT REGISTERS TESTS:\n");
 #endif
     counter = 1;
-    base_read_tests(modbus_master_read_holding_registers, counter);
+    base_read_tests(modbus_master_read_holding_registers, counter, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT);
     counter += 5;
 
     modbus_slave_set_register_value(MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS, 0, 6);
@@ -212,54 +212,69 @@ int main(void)
 
     print_test_name("%u: Slave input coils out of range", counter++);
     modbus_master_read_input_status(SLAVE_ID, 0, 0xFFFF);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave unexceptable output coil", counter++);
     modbus_master_read_coils(SLAVE_ID, 0xFFFF, 1);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave output coils out of range", counter++);
     modbus_master_read_coils(SLAVE_ID, 0, 0xFFFF);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave unexceptable input registers", counter++);
     modbus_master_read_input_registers(SLAVE_ID, 0xFFFF, 1);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave input registers out of range", counter++);
     modbus_master_read_input_registers(SLAVE_ID, 0, 0xFFFF);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave unexceptable output registers", counter++);
     modbus_master_read_holding_registers(SLAVE_ID, 0xFFFF, 1);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave input registers out of range", counter++);
     modbus_master_read_holding_registers(SLAVE_ID, 0, 0xFFFF);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave write unexceptable single coil", counter++);
     modbus_master_force_single_coil(SLAVE_ID, 0xFFFF, 0x0001);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave write unexceptable single register", counter++);
     modbus_master_preset_single_register(SLAVE_ID, 0xFFFF, 0x0001);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave write out of range multiple coils", counter++);
     const bool error_test_02[] = {true, true, true};
     modbus_master_force_multiple_coils(SLAVE_ID, 0, error_test_02, 0xFFFF);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave unexceptable multiple coils", counter++);
     modbus_master_force_multiple_coils(SLAVE_ID, 0xFFFF, error_test_02, 3);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave write unexceptable values to multiple coils", counter++);
     modbus_master_force_multiple_coils(SLAVE_ID, 0, NULL, 1);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave write out of range multiple coils", counter++);
     modbus_master_force_multiple_coils(SLAVE_ID, 0, error_test_02, 0xFFFF);
+    modbus_slave_timeout();
 
 
     print_test_name("%u: Slave unexceptable multiple registers", counter++);
     const uint16_t error_test_03[] = { 0x001F, 0x002F, 0x003F };
     modbus_master_preset_multiple_registers(SLAVE_ID, 0xFFFF, error_test_03, 3);
+    modbus_slave_timeout();
 
     print_test_name("%u: Slave write unexceptable values to multiple registers", counter++);
     modbus_master_preset_multiple_registers(SLAVE_ID, 0, NULL, 1);
 
     print_test_name("%u: Slave write out of range multiple registers", counter++);
     modbus_master_preset_multiple_registers(SLAVE_ID, 0, error_test_03, 0xFFFF);
+    modbus_slave_timeout();
 
     wait_error = false;
     /* ERROR REQUEST END */
@@ -271,7 +286,7 @@ int main(void)
     return 0;
 }
 
-void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t counter)
+void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t counter, uint32_t registers_count)
 {
 #ifdef __GNUC__
     print_test_name("%u: Test read first", counter++);
@@ -287,28 +302,28 @@ void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t c
     const uint8_t test_read_coils_02[] = { 0x00, 0x00 };
     memcpy(expected_master_result, test_read_coils_02, sizeof(test_read_coils_02));
     expected_master_result_len = sizeof(test_read_coils_02);
-    read_func(SLAVE_ID, MODBUS_REGISTER_SIZE - 1, 1);
+    read_func(SLAVE_ID, registers_count - 1, 1);
 
 #ifdef __GNUC__
     print_test_name("%u: Test read unavailable", counter++);
 #endif
     wait_error = true;
-    read_func(SLAVE_ID, MODBUS_REGISTER_SIZE, 1);
+    read_func(SLAVE_ID, registers_count, 1);
     wait_error = false;
 
 #ifdef __GNUC__
     print_test_name("%u: Test read all", counter++);
 #endif
-    const uint8_t test_read_coils_04[MODBUS_REGISTER_SIZE] = { 0x00, 0x00 };
+    const uint8_t test_read_coils_04[MODBUS_MESSAGE_DATA_SIZE] = { 0x00, 0x00 };
     memcpy(expected_master_result, test_read_coils_04, sizeof(test_read_coils_04));
     expected_master_result_len = sizeof(test_read_coils_04);
-    read_func(SLAVE_ID, 0, MODBUS_REGISTER_SIZE);
+    read_func(SLAVE_ID, 0, registers_count);
 
 #ifdef __GNUC__
     print_test_name("%u: Test read unavailable", counter++);
 #endif
     wait_error = true;
-    read_func(SLAVE_ID, MODBUS_REGISTER_SIZE / 2, MODBUS_REGISTER_SIZE);
+    read_func(SLAVE_ID, registers_count / 2, registers_count);
     wait_error = false;
 }
 

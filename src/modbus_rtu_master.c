@@ -29,6 +29,7 @@ void _mb_ms_fsm_response_crc(uint8_t byte);
 void _mb_ms_response_proccess(void);
 
 uint16_t _mb_ms_get_response_bytes_count(void);
+uint16_t _mb_ms_get_registers_count(register_type_t register_type);
 
 bool _mb_ms_is_read_command(void);
 bool _mb_ms_is_write_single_reg_command(void);
@@ -42,6 +43,8 @@ bool _mb_ms_check_response_crc(void);
 void _mb_ms_make_read_discrete_packet(modbus_response_t* packet);
 void _mb_ms_make_read_analog_packet(modbus_response_t* packet);
 void _mb_ms_make_write_packet(modbus_response_t* packet);
+
+register_type_t _mb_ms_get_request_register_type();
 
 
 modbus_master_state_t mb_master_state = {
@@ -343,8 +346,8 @@ void _mb_ms_reset_data(void)
 	memset((uint8_t*)&mb_master_state.response_bytes, 0, sizeof(mb_master_state.response_bytes));
 
 	mb_master_state.response_byte_handler = _mb_ms_fsm_response_slave_id;
-	mb_master_state.data_counter = 0;
-	mb_master_state.response_bytes_len = 0;
+	mb_master_state.data_counter          = 0;
+	mb_master_state.response_bytes_len    = 0;
 }
 
 void _mb_ms_do_internal_error(void)
@@ -352,6 +355,7 @@ void _mb_ms_do_internal_error(void)
 	if (mb_master_state.internal_error_handler != NULL) {
 		mb_master_state.internal_error_handler();
 	}
+	_mb_ms_reset_data();
 }
 
 void _mb_ms_make_read_discrete_packet(modbus_response_t* packet)
@@ -409,7 +413,7 @@ void _mb_ms_fsm_response_register_addr(uint8_t byte)
 		mb_master_state.data_counter = 0;
 		mb_master_state.response_byte_handler = _mb_ms_fsm_response_special_data;
 	}
-	if (mb_master_state.data_resp.register_addr >= MODBUS_REGISTER_SIZE) {
+	if (mb_master_state.data_resp.register_addr >= _mb_ms_get_registers_count(_mb_ms_get_request_register_type())) {
 		_mb_ms_reset_data();
 	}
 }
@@ -420,7 +424,8 @@ void _mb_ms_fsm_response_special_data(uint8_t byte)
 		goto do_count_special_data;
 	}
 
-	if (_mb_ms_get_response_bytes_count() > MODBUS_REGISTER_SIZE * sizeof(uint16_t)) {
+
+	if (_mb_ms_get_response_bytes_count() > _mb_ms_get_registers_count(_mb_ms_get_request_register_type()) * sizeof(uint16_t)) {
 		_mb_ms_do_internal_error();
 		_mb_ms_reset_data();
 		return;
@@ -472,12 +477,12 @@ do_reset_data:
 
 uint16_t _mb_ms_get_response_bytes_count(void)
 {
-#if MODBUS_ENABLE_FORCE_SINGLE_COIL || MODBUS_ENABLE_PRESET_SINGLE_REGISTER || MODBUS_ENABLE_FORCE_MULTIPLE_COILS || MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS
+#if MODBUS_MASTER_OUTPUT_COILS_COUNT || MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT
 	if (!_mb_ms_is_read_command()) {
 		return 2;
 	}
 #endif
-#if MODBUS_ENABLE_READ_COIL_STATUS || MODBUS_ENABLE_READ_INPUT_STATUS || MODBUS_ENABLE_READ_HOLDING_REGISTERS || MODBUS_ENABLE_READ_INPUT_REGISTERS
+#if MODBUS_MASTER_OUTPUT_COILS_COUNT || MODBUS_MASTER_INPUT_COILS_COUNT || MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT || MODBUS_MASTER_INPUT_REGISTERS_COUNT
 	if (_mb_ms_is_read_command()) {
 		return mb_master_state.data_resp.data_len;
 	}
@@ -522,29 +527,74 @@ bool _mb_ms_check_response_crc(void) {
 bool _mb_ms_check_response_command(void)
 {
 	return false
-#if MODBUS_ENABLE_READ_COIL_STATUS
+#if MODBUS_MASTER_OUTPUT_COILS_COUNT
 		|| mb_master_state.data_resp.command == MODBUS_READ_COILS
-#endif
-#if MODBUS_ENABLE_READ_INPUT_STATUS
-		|| mb_master_state.data_resp.command == MODBUS_READ_INPUT_STATUS
-#endif
-#if MODBUS_ENABLE_READ_HOLDING_REGISTERS
-		|| mb_master_state.data_resp.command == MODBUS_READ_HOLDING_REGISTERS
-#endif
-#if MODBUS_ENABLE_READ_INPUT_REGISTERS
-		|| mb_master_state.data_resp.command == MODBUS_READ_INPUT_REGISTERS
-#endif
-#if MODBUS_ENABLE_FORCE_SINGLE_COIL
 		|| mb_master_state.data_resp.command == MODBUS_FORCE_SINGLE_COIL
-#endif
-#if MODBUS_ENABLE_PRESET_SINGLE_REGISTER
-		|| mb_master_state.data_resp.command == MODBUS_PRESET_SINGLE_REGISTER
-#endif
-#if MODBUS_ENABLE_FORCE_MULTIPLE_COILS
 		|| mb_master_state.data_resp.command == MODBUS_FORCE_MULTIPLE_COILS
 #endif
-#if MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS
+#if MODBUS_MASTER_INPUT_COILS_COUNT
+		|| mb_master_state.data_resp.command == MODBUS_READ_INPUT_STATUS
+#endif
+#if MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT
+		|| mb_master_state.data_resp.command == MODBUS_READ_HOLDING_REGISTERS
+		|| mb_master_state.data_resp.command == MODBUS_PRESET_SINGLE_REGISTER
 		|| mb_master_state.data_resp.command == MODBUS_PRESET_MULTIPLE_REGISTERS
 #endif
+#if MODBUS_MASTER_INPUT_REGISTERS_COUNT
+		|| mb_master_state.data_resp.command == MODBUS_READ_INPUT_REGISTERS
+#endif
 		;
+}
+
+uint16_t _mb_ms_get_registers_count(register_type_t register_type)
+{
+#if MODBUS_MASTER_INPUT_COILS_COUNT
+	if (register_type == MODBUS_REGISTER_DISCRETE_INPUT_COILS) {
+		return MODBUS_MASTER_INPUT_COILS_COUNT;
+	}
+#endif
+#if MODBUS_MASTER_OUTPUT_COILS_COUNT
+	if (register_type == MODBUS_REGISTER_DISCRETE_OUTPUT_COILS) {
+		return MODBUS_MASTER_OUTPUT_COILS_COUNT;
+	}
+#endif
+#if MODBUS_MASTER_INPUT_REGISTERS_COUNT
+	if (register_type == MODBUS_REGISTER_ANALOG_INPUT_REGISTERS) {
+		return MODBUS_MASTER_INPUT_COILS_COUNT;
+	}
+#endif
+#if MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT
+	if (register_type == MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS) {
+		return MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT;
+	}
+#endif
+	return 0;
+}
+
+register_type_t _mb_ms_get_request_register_type()
+{
+
+	register_type_t  register_type = 0;
+	modbus_command_t command       = mb_master_state.data_req.command;
+#if MODBUS_MASTER_INPUT_COILS_COUNT
+	if (command == MODBUS_READ_INPUT_STATUS) {
+		register_type = MODBUS_REGISTER_DISCRETE_INPUT_COILS;
+	}
+#endif
+#if MODBUS_MASTER_OUTPUT_COILS_COUNT
+	if (command == MODBUS_FORCE_MULTIPLE_COILS || command == MODBUS_FORCE_SINGLE_COIL || command == MODBUS_READ_COILS) {
+		register_type = MODBUS_REGISTER_DISCRETE_OUTPUT_COILS;
+	}
+#endif
+#if MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT
+	if (command == MODBUS_PRESET_MULTIPLE_REGISTERS || command == MODBUS_PRESET_SINGLE_REGISTER || command == MODBUS_READ_HOLDING_REGISTERS) {
+		register_type = MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS;
+	}
+#endif
+#if MODBUS_MASTER_INPUT_REGISTERS_COUNT
+	if (command == MODBUS_READ_INPUT_REGISTERS) {
+		register_type = MODBUS_REGISTER_ANALOG_INPUT_REGISTERS;
+	}
+#endif
+	return register_type;
 }
