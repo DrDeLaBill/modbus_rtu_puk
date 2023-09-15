@@ -15,33 +15,19 @@ extern "C" {
 #include <stdint.h>
 
 
-/* MODBUS SLAVE SETTINGS BEGIN */
-// Registers:
-#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             true
-#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              true
-#define MODBUS_ENABLE_ANALOG_INPUT_REGISTERS            true
-#define MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS   true
-#define MODBUS_REGISTER_SIZE                            16    // MODBUS default: 9999
+/*************************** MODBUS REGISTER SETTINGS BEGIN ***************************/
 
-// Commands:
-#define MODBUS_ENABLE_COMMAND_READ_COIL_STATUS          true
-#define MODBUS_ENABLE_COMMAND_READ_INPUT_STATUS         true
-#define MODBUS_ENABLE_COMMAND_READ_HOLDING_REGISTERS    true
-#define MODBUS_ENABLE_COMMAND_READ_INPUT_REGISTERS      true
-#define MODBUS_ENABLE_COMMAND_FORCE_SINGLE_COIL         true
-#define MODBUS_ENABLE_COMMAND_PRESET_SINGLE_REGISTER    true
-#define MODBUS_ENABLE_COMMAND_FORCE_MULTIPLE_COILS      true
-#define MODBUS_ENABLE_COMMAND_PRESET_MULTIPLE_REGISTERS true
-/* MODBUS SLAVE SETTINGS END */
+#define MODBUS_SLAVE_INPUT_COILS_COUNT                  (16)     // MODBUS default: 9999
+#define MODBUS_SLAVE_OUTPUT_COILS_COUNT                 (16)     // MODBUS default: 9999
+#define MODBUS_SLAVE_INPUT_REGISTERS_COUNT              (16)     // MODBUS default: 9999
+#define MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT     (16)     // MODBUS default: 9999
 
-#define MODBUS_ENABLE_READ_COIL_STATUS                  MODBUS_ENABLE_COMMAND_READ_COIL_STATUS          && MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
-#define MODBUS_ENABLE_READ_INPUT_STATUS                 MODBUS_ENABLE_COMMAND_READ_INPUT_STATUS         && MODBUS_ENABLE_DISCRETE_INPUT_COILS
-#define MODBUS_ENABLE_READ_HOLDING_REGISTERS            MODBUS_ENABLE_COMMAND_READ_HOLDING_REGISTERS    && MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
-#define MODBUS_ENABLE_READ_INPUT_REGISTERS              MODBUS_ENABLE_COMMAND_READ_INPUT_REGISTERS      && MODBUS_ENABLE_ANALOG_INPUT_REGISTERS
-#define MODBUS_ENABLE_FORCE_SINGLE_COIL                 MODBUS_ENABLE_COMMAND_FORCE_SINGLE_COIL         && MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
-#define MODBUS_ENABLE_PRESET_SINGLE_REGISTER            MODBUS_ENABLE_COMMAND_PRESET_SINGLE_REGISTER    && MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
-#define MODBUS_ENABLE_FORCE_MULTIPLE_COILS              MODBUS_ENABLE_COMMAND_FORCE_MULTIPLE_COILS      && MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
-#define MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS         MODBUS_ENABLE_COMMAND_PRESET_MULTIPLE_REGISTERS && MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
+#define MODBUS_MASTER_INPUT_COILS_COUNT                 (16)     // MODBUS default: 9999
+#define MODBUS_MASTER_OUTPUT_COILS_COUNT                (16)     // MODBUS default: 9999
+#define MODBUS_MASTER_INPUT_REGISTERS_COUNT             (16)     // MODBUS default: 9999
+#define MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT    (16)     // MODBUS default: 9999
+
+/**************************** MODBUS REGISTER SETTINGS END ****************************/
 
 
 #define SPECIAL_DATA_REGISTERS_COUNT_IDX                ((uint8_t)0)
@@ -49,8 +35,6 @@ extern "C" {
 #define SPECIAL_DATA_META_COUNT                         ((uint8_t)3)
 
 #define MODBUS_ERROR_COMMAND_CODE                       ((uint8_t)0x80)
-
-#define MODBUS_RESPONSE_MESSAGE_SIZE                    ((uint16_t)(MODBUS_MESSAGE_DATA_SIZE + 5))
 
 
 typedef enum _modbus_command_t {
@@ -86,7 +70,10 @@ typedef enum _modbus_error_types_t {
 } modbus_error_types_t;
 
 
-#define MODBUS_MESSAGE_DATA_SIZE (2 * (MODBUS_REGISTER_SIZE + 2))
+#define MIN(var1, var2)          ((var1 < var2) ? (var1) : (var2))
+#define MAX(var1, var2)          ((var1 > var2) ? (var1) : (var2))
+
+#define MODBUS_MESSAGE_DATA_SIZE ((2 * (MAX(MAX(MODBUS_SLAVE_INPUT_COILS_COUNT, MODBUS_SLAVE_OUTPUT_COILS_COUNT), MAX(MODBUS_SLAVE_INPUT_REGISTERS_COUNT, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT)) + 2)) + 1)
 typedef struct _modbus_request_message_t {
     uint8_t  id;
     uint8_t  command;
@@ -104,6 +91,9 @@ typedef struct _modbus_response_message_t {
     uint8_t  data_resp[MODBUS_MESSAGE_DATA_SIZE];
     uint16_t crc;
 } modbus_response_message_t;
+
+
+#define MODBUS_RESPONSE_MESSAGE_SIZE  ((uint16_t)(MODBUS_MESSAGE_DATA_SIZE + 5))
 
 
 uint16_t modbus_crc16(const uint8_t* data, uint16_t len);

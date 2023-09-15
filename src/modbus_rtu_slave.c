@@ -13,17 +13,17 @@
 #include "modbus_rtu_base.h"
 
 
-#if MODBUS_ENABLE_DISCRETE_OUTPUT_COILS == true
-bool mb_discrete_output_coils[MODBUS_REGISTER_SIZE] = { 0 };
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
+bool mb_discrete_output_coils[MODBUS_SLAVE_OUTPUT_COILS_COUNT] = { 0 };
 #endif
-#if MODBUS_ENABLE_DISCRETE_INPUT_COILS == true
-bool mb_discrete_input_coils[MODBUS_REGISTER_SIZE] = { 0 };
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
+bool mb_discrete_input_coils[MODBUS_SLAVE_INPUT_COILS_COUNT] = { 0 };
 #endif
-#if MODBUS_ENABLE_ANALOG_INPUT_REGISTERS == true
-uint16_t mb_analog_input_registers[MODBUS_REGISTER_SIZE] = { 0 };
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
+uint16_t mb_analog_input_registers[MODBUS_SLAVE_INPUT_REGISTERS_COUNT] = { 0 };
 #endif
-#if MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS == true
-uint16_t mb_analog_output_holding_registers[MODBUS_REGISTER_SIZE] = { 0 };
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
+uint16_t mb_analog_output_holding_registers[MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT] = { 0 };
 #endif
 
 
@@ -50,14 +50,18 @@ bool _mb_sl_check_request_register_addr(void);
 bool _mb_sl_check_request_registers_count(void);
 uint16_t _mb_sl_get_special_data_first_value(void);
 uint16_t _mb_sl_get_needed_registers_count(void);
+uint16_t _mb_sl_get_registers_count(register_type_t register_type);
+
 
 void _mb_sl_make_read_response(void);
 void _mb_sl_make_write_single_response(void);
 void _mb_sl_make_write_multiple_response(void);
 
+register_type_t _mb_sl_get_request_register_type();
+
 
 modbus_slave_state_t mb_slave_state = {
-    .slave_id = 0x00,
+    .slave_id = 0x00, 
     .response_data_handler = NULL,
     .internal_error_handler = NULL,
     .request_byte_handler = _mb_sl_fsm_request_slave_id,
@@ -113,25 +117,25 @@ void modbus_slave_timeout(void)
 
 uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t register_id)
 {
-    if (register_id >= MODBUS_REGISTER_SIZE) {
+    if (register_id >= _mb_sl_get_registers_count(register_type)) {
         return 0;
     }
-#if MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (register_type == MODBUS_REGISTER_DISCRETE_OUTPUT_COILS) {
         return mb_discrete_output_coils[register_id];
     }
 #endif
-#if MODBUS_ENABLE_DISCRETE_INPUT_COILS
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
     if (register_type == MODBUS_REGISTER_DISCRETE_INPUT_COILS) {
         return mb_discrete_input_coils[register_id];
     }
 #endif
-#if MODBUS_ENABLE_ANALOG_INPUT_REGISTERS
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
     if (register_type == MODBUS_REGISTER_ANALOG_INPUT_REGISTERS) {
         return mb_analog_input_registers[register_id];
     }
 #endif
-#if MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (register_type == MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS) {
         return mb_analog_output_holding_registers[register_id];
     }
@@ -141,26 +145,26 @@ uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t
 
 void modbus_slave_set_register_value(register_type_t register_type, uint16_t register_id, uint16_t value)
 {
-    if (register_id >= MODBUS_REGISTER_SIZE) {
+    if (register_id >= _mb_sl_get_registers_count(register_type)) {
         _mb_sl_do_internal_error();
         return;
     }
-#if MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (register_type == MODBUS_REGISTER_DISCRETE_OUTPUT_COILS) {
         mb_discrete_output_coils[register_id] = value > 0;
     }
 #endif
-#if MODBUS_ENABLE_DISCRETE_INPUT_COILS
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
     if (register_type == MODBUS_REGISTER_DISCRETE_INPUT_COILS) {
         mb_discrete_input_coils[register_id] = value > 0;
     }
 #endif
-#if MODBUS_ENABLE_ANALOG_INPUT_REGISTERS
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
     if (register_type == MODBUS_REGISTER_ANALOG_INPUT_REGISTERS) {
         mb_analog_input_registers[register_id] = value;
     }
 #endif
-#if MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (register_type == MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS) {
         mb_analog_output_holding_registers[register_id] = value;
     }
@@ -269,12 +273,12 @@ void _mb_sl_send_response(void)
 
 void _mb_sl_write_single_register(void)
 {
-#if MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL) {
         mb_discrete_output_coils[mb_slave_state.data_req.register_addr] = _mb_sl_get_special_data_first_value() > 0;
     }
 #endif
-#if MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_PRESET_SINGLE_REGISTER) {
         mb_analog_output_holding_registers[mb_slave_state.data_req.register_addr] = _mb_sl_get_special_data_first_value();
     }
@@ -284,14 +288,17 @@ void _mb_sl_write_single_register(void)
 void _mb_sl_write_multiple_registers(void)
 {
     uint16_t count = _mb_sl_get_special_data_first_value();
-    if (mb_slave_state.data_req.register_addr >= MODBUS_REGISTER_SIZE) {
+
+    if (mb_slave_state.data_req.register_addr >= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())) {
         _mb_sl_do_internal_error();
         return;
     }
-    if (SPECIAL_DATA_META_COUNT + count - 1 > MODBUS_REGISTER_SIZE) {
-        count = MODBUS_REGISTER_SIZE - SPECIAL_DATA_META_COUNT;
+    
+    if (SPECIAL_DATA_META_COUNT + count - 1 > _mb_sl_get_registers_count(_mb_sl_get_request_register_type())) {
+        count = _mb_sl_get_registers_count(_mb_sl_get_request_register_type()) - SPECIAL_DATA_META_COUNT;
     }
-#if MODBUS_ENABLE_DISCRETE_OUTPUT_COILS
+
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_FORCE_MULTIPLE_COILS) {
         for (uint8_t i = 0; i < count; i++) {
             bool value = ((mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT] >> i) & 0x01);
@@ -299,7 +306,7 @@ void _mb_sl_write_multiple_registers(void)
         }
     }
 #endif
-#if MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_PRESET_MULTIPLE_REGISTERS) {
         for (uint8_t i = 0; i < count * 2; i += 2) {
             uint16_t value = (uint16_t)mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT + i] << 8 |
@@ -317,7 +324,7 @@ void modbus_slave_clear_data(void)
     memset(mb_slave_state.req_data_bytes, 0, sizeof(mb_slave_state.req_data_bytes));
     mb_slave_state.req_data_bytes_idx = 0;
 
-    mb_slave_state.is_error_response = false;
+    mb_slave_state.is_error_response    = false;
     mb_slave_state.data_handler_counter = 0;
     mb_slave_state.request_byte_handler = _mb_sl_fsm_request_slave_id;
 }
@@ -338,23 +345,23 @@ void _mb_sl_make_read_response(void)
     uint8_t counter = 0;
     while (counter < req_data_len) {
         uint16_t cur_idx = mb_slave_state.data_req.register_addr + counter;
-#if MODBUS_ENABLE_READ_COIL_STATUS
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
         if (command == MODBUS_READ_COILS) {
             mb_slave_state.data_resp.data_resp[1 + (counter / 8)] |= (mb_discrete_output_coils[cur_idx] << (cur_idx % 8));
         }
 #endif
-#if MODBUS_ENABLE_READ_INPUT_STATUS
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
         if (command == MODBUS_READ_INPUT_STATUS) {
             mb_slave_state.data_resp.data_resp[1 + (counter / 8)] |= (mb_discrete_input_coils[cur_idx] << (cur_idx % 8));
         }
 #endif
-#if MODBUS_ENABLE_READ_HOLDING_REGISTERS
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
         if (command == MODBUS_READ_HOLDING_REGISTERS) {
             mb_slave_state.data_resp.data_resp[1 + counter * 2] = mb_analog_output_holding_registers[cur_idx] >> 8;
             mb_slave_state.data_resp.data_resp[1 + counter * 2 + 1] = mb_analog_output_holding_registers[cur_idx];
         }
 #endif
-#if MODBUS_ENABLE_READ_INPUT_REGISTERS
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
         if (command == MODBUS_READ_INPUT_REGISTERS) {
             mb_slave_state.data_resp.data_resp[1 + counter * 2] = mb_analog_input_registers[cur_idx] >> 8;
             mb_slave_state.data_resp.data_resp[1 + counter * 2 + 1] = mb_analog_input_registers[cur_idx];
@@ -384,13 +391,13 @@ void _mb_sl_make_write_single_response(void)
     mb_slave_state.data_resp.data_resp[counter++] = reg_addr >> 8;
     mb_slave_state.data_resp.data_resp[counter++] = reg_addr;
 
-#if MODBUS_ENABLE_FORCE_SINGLE_COIL
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL) {
         mb_slave_state.data_resp.data_resp[counter++] = mb_discrete_output_coils[reg_addr] >> 8;
         mb_slave_state.data_resp.data_resp[counter++] = mb_discrete_output_coils[reg_addr];
     }
 #endif
-#if MODBUS_ENABLE_PRESET_SINGLE_REGISTER
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_PRESET_SINGLE_REGISTER) {
         mb_slave_state.data_resp.data_resp[counter++] = mb_analog_output_holding_registers[reg_addr] >> 8;
         mb_slave_state.data_resp.data_resp[counter++] = mb_analog_output_holding_registers[reg_addr];
@@ -466,7 +473,7 @@ void _mb_sl_fsm_request_special_data(uint8_t byte)
     uint16_t needed_count = 0;
     uint16_t cur_count = mb_slave_state.data_handler_counter;
 
-    if (mb_slave_state.data_req.register_addr + _mb_sl_get_needed_registers_count() >= MODBUS_REGISTER_SIZE) {
+    if (mb_slave_state.data_req.register_addr + _mb_sl_get_needed_registers_count() >= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())) {
         goto do_count_special_data;
     }
 
@@ -560,36 +567,28 @@ bool _mb_sl_is_recieved_own_slave_id(void)
 bool _mb_sl_check_available_request_command(void)
 {
     return false
-#if MODBUS_ENABLE_READ_COIL_STATUS
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
         || mb_slave_state.data_req.command == MODBUS_READ_COILS
-#endif
-#if MODBUS_ENABLE_READ_INPUT_STATUS
-        || mb_slave_state.data_req.command == MODBUS_READ_INPUT_STATUS
-#endif
-#if MODBUS_ENABLE_READ_HOLDING_REGISTERS
-        || mb_slave_state.data_req.command == MODBUS_READ_HOLDING_REGISTERS
-#endif
-#if MODBUS_ENABLE_READ_INPUT_REGISTERS
-        || mb_slave_state.data_req.command == MODBUS_READ_INPUT_REGISTERS
-#endif
-#if MODBUS_ENABLE_FORCE_SINGLE_COIL
         || mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL
-#endif
-#if MODBUS_ENABLE_PRESET_SINGLE_REGISTER
-        || mb_slave_state.data_req.command == MODBUS_PRESET_SINGLE_REGISTER
-#endif
-#if MODBUS_ENABLE_FORCE_MULTIPLE_COILS
         || mb_slave_state.data_req.command == MODBUS_FORCE_MULTIPLE_COILS
 #endif
-#if MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
+        || mb_slave_state.data_req.command == MODBUS_READ_INPUT_STATUS
+#endif
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
+        || mb_slave_state.data_req.command == MODBUS_READ_HOLDING_REGISTERS
+        || mb_slave_state.data_req.command == MODBUS_PRESET_SINGLE_REGISTER
         || mb_slave_state.data_req.command == MODBUS_PRESET_MULTIPLE_REGISTERS
+#endif
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
+        || mb_slave_state.data_req.command == MODBUS_READ_INPUT_REGISTERS
 #endif
         ;
 }
 
 bool _mb_sl_check_request_register_addr(void)
 {
-    return mb_slave_state.data_req.register_addr < MODBUS_REGISTER_SIZE;
+    return mb_slave_state.data_req.register_addr < _mb_sl_get_registers_count(_mb_sl_get_request_register_type());
 }
 
 bool _mb_sl_check_request_registers_count(void)
@@ -597,8 +596,9 @@ bool _mb_sl_check_request_registers_count(void)
     uint16_t reg_count = _mb_sl_get_needed_registers_count();
     uint8_t data_count = mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT - 1];
     uint16_t reg_addr = mb_slave_state.data_req.register_addr;
+
     return reg_count > 0
-        && reg_addr + reg_count <= MODBUS_REGISTER_SIZE
+        && reg_addr + reg_count <= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())
         && SPECIAL_DATA_META_COUNT + data_count <= sizeof(mb_slave_state.data_req.special_data);
 }
 
@@ -611,15 +611,67 @@ uint16_t _mb_sl_get_special_data_first_value(void)
 
 uint16_t _mb_sl_get_needed_registers_count(void)
 {
-#if MODBUS_ENABLE_FORCE_SINGLE_COIL || MODBUS_ENABLE_PRESET_SINGLE_REGISTER
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT || MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (_mb_sl_is_write_single_reg_command()) {
         return 1;
     }
 #endif
-#if MODBUS_ENABLE_READ_COIL_STATUS || MODBUS_ENABLE_READ_INPUT_STATUS || MODBUS_ENABLE_READ_HOLDING_REGISTERS || MODBUS_ENABLE_READ_INPUT_REGISTERS || MODBUS_ENABLE_FORCE_MULTIPLE_COILS || MODBUS_ENABLE_PRESET_MULTIPLE_REGISTERS
+#if MODBUS_SLAVE_INPUT_COILS_COUNT || MODBUS_SLAVE_OUTPUT_COILS_COUNT || MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (_mb_sl_is_read_command() || _mb_sl_is_write_multiple_reg_command()) {
         return _mb_sl_get_special_data_first_value();
     }
 #endif
     return 0;
+}
+
+uint16_t _mb_sl_get_registers_count(register_type_t register_type)
+{
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
+    if (register_type == MODBUS_REGISTER_DISCRETE_INPUT_COILS) {
+        return MODBUS_SLAVE_INPUT_COILS_COUNT;
+    }
+#endif
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
+    if (register_type == MODBUS_REGISTER_DISCRETE_OUTPUT_COILS) {
+        return MODBUS_SLAVE_OUTPUT_COILS_COUNT;
+    }
+#endif
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
+    if (register_type == MODBUS_REGISTER_ANALOG_INPUT_REGISTERS) {
+        return MODBUS_SLAVE_INPUT_COILS_COUNT;
+    }
+#endif
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
+    if (register_type == MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS) {
+        return MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT;
+    }
+#endif
+    return 0;
+}
+
+register_type_t _mb_sl_get_request_register_type()
+{
+    register_type_t  register_type = 0;
+    modbus_command_t command = mb_slave_state.data_req.command;
+#if MODBUS_SLAVE_INPUT_COILS_COUNT
+    if (command == MODBUS_READ_INPUT_STATUS) {
+        register_type = MODBUS_REGISTER_DISCRETE_INPUT_COILS;
+    }
+#endif
+#if MODBUS_SLAVE_OUTPUT_COILS_COUNT
+    if (command == MODBUS_FORCE_MULTIPLE_COILS || command == MODBUS_FORCE_SINGLE_COIL || command == MODBUS_READ_COILS) {
+        register_type = MODBUS_REGISTER_DISCRETE_OUTPUT_COILS;
+    }
+#endif
+#if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
+    if (command == MODBUS_PRESET_MULTIPLE_REGISTERS || command == MODBUS_PRESET_SINGLE_REGISTER || command == MODBUS_READ_HOLDING_REGISTERS) {
+        register_type = MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS;
+    }
+#endif
+#if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
+    if (command == MODBUS_READ_INPUT_REGISTERS) {
+        register_type = MODBUS_REGISTER_ANALOG_INPUT_REGISTERS;
+    }
+#endif
+    return register_type;
 }
