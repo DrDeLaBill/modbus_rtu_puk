@@ -12,24 +12,19 @@ Modbus master-slave RTU library for microcontrollers.
 
 You can setup modbus in ```modbus_rtu_base.h``` header:
 ```C
-/* MODBUS SLAVE SETTINGS BEGIN */
-// Registers:
-#define MODBUS_ENABLE_DISCRETE_OUTPUT_COILS             true
-#define MODBUS_ENABLE_DISCRETE_INPUT_COILS              true
-#define MODBUS_ENABLE_ANALOG_INPUT_REGISTERS            true
-#define MODBUS_ENABLE_ANALOG_OUTPUT_HOLDING_REGISTERS   true
-#define MODBUS_REGISTER_SIZE                            16    // MODBUS default: 9999
+/*************************** MODBUS REGISTER SETTINGS BEGIN ***************************/
 
-// Commands:
-#define MODBUS_ENABLE_COMMAND_READ_COIL_STATUS          true
-#define MODBUS_ENABLE_COMMAND_READ_INPUT_STATUS         true
-#define MODBUS_ENABLE_COMMAND_READ_HOLDING_REGISTERS    true
-#define MODBUS_ENABLE_COMMAND_READ_INPUT_REGISTERS      true
-#define MODBUS_ENABLE_COMMAND_FORCE_SINGLE_COIL         true
-#define MODBUS_ENABLE_COMMAND_PRESET_SINGLE_REGISTER    true
-#define MODBUS_ENABLE_COMMAND_FORCE_MULTIPLE_COILS      true
-#define MODBUS_ENABLE_COMMAND_PRESET_MULTIPLE_REGISTERS true
-/* MODBUS SLAVE SETTINGS END */
+#define MODBUS_SLAVE_INPUT_COILS_COUNT                  (16)     // MODBUS default: 9999
+#define MODBUS_SLAVE_OUTPUT_COILS_COUNT                 (16)     // MODBUS default: 9999
+#define MODBUS_SLAVE_INPUT_REGISTERS_COUNT              (16)     // MODBUS default: 9999
+#define MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT     (16)     // MODBUS default: 9999
+
+#define MODBUS_MASTER_INPUT_COILS_COUNT                 (16)     // MODBUS default: 9999
+#define MODBUS_MASTER_OUTPUT_COILS_COUNT                (16)     // MODBUS default: 9999
+#define MODBUS_MASTER_INPUT_REGISTERS_COUNT             (16)     // MODBUS default: 9999
+#define MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT    (16)     // MODBUS default: 9999
+
+/**************************** MODBUS REGISTER SETTINGS END ****************************/
 ```
 
 ### Master functions
@@ -113,9 +108,11 @@ int main()
     // Send request
     modbus_master_read_coils(0x01, 0x0000, 0x0000);
 
-    while (/* new byte available */) {
+    while (/* if new response byte available */) {
         // modbus_master_recieve_data_byte(new byte);
     }
+
+    // response proccess
 
     return 0;
 }
@@ -187,6 +184,12 @@ int main()
     modbus_slave_set_request_error_handler(&slave_internal_error_handler);
 
     modbus_slave_set_register_value(MODBUS_REGISTER_ANALOG_OUTPUT_HOLDING_REGISTERS, 0x0000, 0x1234);
+
+    while (1) {
+        if (/* if new request byte available */) {
+            // modbus_slave_recieve_data_byte(new byte);
+        }
+    }
 
     return 0;
 }
