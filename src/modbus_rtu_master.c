@@ -560,7 +560,7 @@ uint16_t _mb_ms_get_registers_count(register_type_t register_type)
 #endif
 #if MODBUS_MASTER_INPUT_REGISTERS_COUNT
 	if (register_type == MODBUS_REGISTER_ANALOG_INPUT_REGISTERS) {
-		return MODBUS_MASTER_INPUT_COILS_COUNT;
+		return MODBUS_MASTER_INPUT_REGISTERS_COUNT;
 	}
 #endif
 #if MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT
