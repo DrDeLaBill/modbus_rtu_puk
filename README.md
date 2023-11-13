@@ -202,6 +202,6 @@ int main()
 
 ```
 cd <project path>/build
-cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-sdcc.cmake -DMODE_SDCC=1 ..
-make
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchain-sdcc.cmake -DMODE_SDCC=ON ..
+cmake --build .
 ```

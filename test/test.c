@@ -15,8 +15,10 @@
 #include <Windows.h>
 #endif
 
+
 #define SLAVE_ID (0x01)
 #define DETAILS  (false)
+
 
 // Master
 void request_data_sender(uint8_t* data, uint32_t len);
@@ -53,7 +55,9 @@ int main(void)
 
     uint16_t counter = 1;
     /* READ OUTPUT COILS BEGIN */
+#if !SDCC
     printf("\nREAD OUTPUT COILS TESTS:\n");
+#endif
     base_read_tests(modbus_master_read_coils, counter, MODBUS_SLAVE_OUTPUT_COILS_COUNT);
     counter += 5;
 
@@ -71,7 +75,9 @@ int main(void)
 
 
     /* READ INPUT COILS BEGIN */
+#if !SDCC
     printf("\nREAD INPUT COILS TESTS:\n");
+#endif
     counter = 1;
     base_read_tests(modbus_master_read_input_status, counter, MODBUS_SLAVE_INPUT_COILS_COUNT);
     counter += 5;
@@ -90,7 +96,9 @@ int main(void)
 
 
     /* READ INPUT REGISTERS BEGIN */
+#if !SDCC
     printf("\nREAD INPUT REGISTERS TESTS:\n");
+#endif
     counter = 1;
     base_read_tests(modbus_master_read_input_registers, counter, MODBUS_SLAVE_INPUT_REGISTERS_COUNT);
     counter += 5;
@@ -109,7 +117,9 @@ int main(void)
 
 
     /* READ OUTPUT REGISTERS BEGIN */
+#if !SDCC
     printf("\nREAD OUTPUT REGISTERS TESTS:\n");
+#endif
     counter = 1;
     base_read_tests(modbus_master_read_holding_registers, counter, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT);
     counter += 5;
@@ -128,7 +138,9 @@ int main(void)
 
 
     /* WRITE SINGLE COIL BEGIN */
+#if !SDCC
     printf("\nWRITE OUTPUT COIL TEST:\n");
+#endif
     const uint8_t test_read_coils_25[] = { 0x00, 0x01 };
     memcpy(expected_master_result, test_read_coils_25, sizeof(test_read_coils_25));
     expected_master_result_len = sizeof(test_read_coils_25);
@@ -140,7 +152,9 @@ int main(void)
 
 
     /* WRITE SINGLE REGISTER BEGIN */
+#if !SDCC
     printf("\nWRITE OUTPUT REGISTER TEST:\n");
+#endif
     const uint8_t test_read_coils_26[] = {0x01, 0x02 };
     memcpy(expected_master_result, test_read_coils_26, sizeof(test_read_coils_26));
     expected_master_result_len = sizeof(test_read_coils_26);
@@ -153,7 +167,9 @@ int main(void)
 
     /* WRITE MULTIPLE COIL BEGIN */
     counter = 1;
+#if !SDCC
     printf("\nWRITE MULTIPLE OUTPUT COIL TEST:\n");
+#endif
     print_test_name("%u: Test write four registers", counter++);
     const uint8_t test_read_coils_27[] = { 0x00, 0x04 };
     const bool write_vals_01[] = { false, true, false, true };
@@ -174,7 +190,9 @@ int main(void)
 
     /* WRITE MULTIPLE REGISTER BEGIN */
     counter = 1;
+#if !SDCC
     printf("\nWRITE MULTIPLE OUTPUT REGISTER TEST:\n");
+#endif
     print_test_name("%u: Test write two registers", counter++);
     const uint8_t test_read_coils_29[] = { 0x00, 0x02 };
     const uint16_t write_vals_02[] = { 0x0004, 0x0005 };
@@ -199,7 +217,9 @@ int main(void)
 
     modbus_slave_clear_data();
 
+#if !SDCC
     printf("\nERRORS TEST:\n");
+#endif
     print_test_name("%u: Trash request", counter++);
     uint8_t trash_01[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B };
     request_data_sender(trash_01, sizeof(trash_01));
@@ -322,17 +342,16 @@ void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t c
 
 void print_test_name(const char* format, uint16_t counter)
 {
+#if !SDCC && DETAILS
     printf(format, counter);
-#if DETAILS
     printf("\n");
-#else
     printf(" ");
 #endif
 }
 
 void request_data_sender(uint8_t* data, uint32_t len)
 {
-#if DETAILS
+#if !SDCC && DETAILS
     printf("SENDED  : ");
     for (int i = 0; i < len; i++) {
         printf("%02x ", data[i]);
@@ -352,13 +371,15 @@ void response_packet_handler(modbus_response_t* packet)
 {
     response_ready = true;
     if (packet->status != MODBUS_NO_ERROR) {
+#if !SDCC
         char error[12] = { 0 };
         snprintf(error, sizeof(error) - 1, "ERROR: %02x", packet->status);
         print_error(error);
+#endif
         test_error = (wait_error ? test_error : true);
         return;
     }
-#if DETAILS
+#if !SDCC && DETAILS
     printf("EXPECTED: ");
     for (int i = 0; i < expected_master_result_len; i++) {
         printf("%02x ", expected_master_result[i]);
@@ -403,6 +424,7 @@ void slave_internal_error_handler(void)
 
 void print_error(char* text)
 {
+#if !SDCC
 #if _WIN32
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (wait_error ? FOREGROUND_GREEN : FOREGROUND_RED));
 #elif __linux__
@@ -414,10 +436,12 @@ void print_error(char* text)
 #elif __linux__
     printf((wait_error ? "\x1b[0m" : "\x1b[0m"));
 #endif
+#endif
 }
 
 void print_success(char* text)
 {
+#if !SDCC
 #if _WIN32
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (wait_error ? FOREGROUND_RED : FOREGROUND_GREEN));
 #elif __linux__
@@ -428,5 +452,6 @@ void print_success(char* text)
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
 #elif __linux__
     printf((wait_error ? "\x1b[0m" : "\x1b[0m"));
+#endif
 #endif
 }

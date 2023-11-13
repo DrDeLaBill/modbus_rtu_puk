@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 3.27)
+
+if (MODE_SDCC)
+    if (WIN32)
+        message(STATUS "Set MinGW Makefiles")
+        set (CMAKE_GENERATOR "MinGW Makefiles" CACHE INTERNAL "" FORCE)
+    elseif (UNIX)
+        message(STATUS "Set Unix Makefiles")
+        set (CMAKE_GENERATOR "Unix Makefiles" CACHE INTERNAL "" FORCE)
+    else ()
+        message(FATAL_ERROR "Error find generator")
+    endif ()
+endif()

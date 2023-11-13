@@ -1,8 +1,6 @@
-option(MODE_SDCC "SDCC mode." OFF)
+cmake_minimum_required(VERSION 3.27)
 
-if (MODE_SDCC)
-    message("- Enable SDCC")
-	
+if("${MODE_SDCC}" STREQUAL "ON")	
     # the name of the target operating system
     SET(CMAKE_SYSTEM_NAME Generic)
 
@@ -14,11 +12,9 @@ if (MODE_SDCC)
     # SET(CMAKE_FIND_ROOT_PATH "C:/SDCC")
 
     SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-    SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRIRY ONLY)
+    SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
     SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
     # set proper linker flags
     SET(CMAKE_EXE_LINKER_FLAGS "--out-fmt-ihx" CACHE STRING "Linker flags" FORCE)
-    
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --model-large --stack-auto")
 endif()

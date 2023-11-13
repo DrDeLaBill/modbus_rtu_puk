@@ -149,7 +149,7 @@ void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, con
 	}
 
 	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
-	uint16_t counter = 0;
+	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
 	request[counter++] = slave_id;
@@ -207,7 +207,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 	}
 
 	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
-	uint16_t counter = 0;
+	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
 	request[counter++] = slave_id;
@@ -257,7 +257,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_addr, uint16_t spec_data)
 {
 	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
-	uint16_t counter = 0;
+	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
 	request[counter++] = slave_id;
