@@ -14,22 +14,7 @@ extern "C" {
 
 #include <stdint.h>
 
-
-/*************************** MODBUS REGISTER SETTINGS BEGIN ***************************/
-
-/* Slave registers count */
-#define MODBUS_SLAVE_INPUT_COILS_COUNT                  (16)     // MODBUS default: 9999
-#define MODBUS_SLAVE_OUTPUT_COILS_COUNT                 (16)     // MODBUS default: 9999
-#define MODBUS_SLAVE_INPUT_REGISTERS_COUNT              (16)    // MODBUS default: 9999
-#define MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT     (16)    // MODBUS default: 9999
-
-/* Expected registers count (master) */
-#define MODBUS_MASTER_INPUT_COILS_COUNT                 (16)     // MODBUS default: 9999
-#define MODBUS_MASTER_OUTPUT_COILS_COUNT                (16)     // MODBUS default: 9999
-#define MODBUS_MASTER_INPUT_REGISTERS_COUNT             (16)    // MODBUS default: 9999
-#define MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT    (16)    // MODBUS default: 9999
-
-/**************************** MODBUS REGISTER SETTINGS END ****************************/
+#include "modbus_settings.h"
 
 
 #define SPECIAL_DATA_REGISTERS_COUNT_IDX                ((uint8_t)0)
@@ -72,15 +57,18 @@ typedef enum _modbus_error_types_t {
 } modbus_error_types_t;
 
 
-#define MIN(var1, var2)          ((var1 < var2) ? (var1) : (var2))
-#define MAX(var1, var2)          ((var1 > var2) ? (var1) : (var2))
+#ifndef MB_MIN
+#define MB_MIN(var1, var2)       ((var1 < var2) ? (var1) : (var2))
+#endif
+#ifndef MB_MAX
+#define MB_MAX(var1, var2)       ((var1 > var2) ? (var1) : (var2))
+#endif
 
-#define MODBUS_MESSAGE_DATA_SIZE ((2 * MAX(MAX(MODBUS_SLAVE_INPUT_COILS_COUNT, MODBUS_SLAVE_OUTPUT_COILS_COUNT), MAX(MODBUS_SLAVE_INPUT_REGISTERS_COUNT, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
+#define MODBUS_MESSAGE_DATA_SIZE ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_SLAVE_INPUT_COILS_COUNT, MODBUS_SLAVE_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_SLAVE_INPUT_REGISTERS_COUNT, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
 typedef struct _modbus_request_message_t {
     uint8_t  id;
     uint8_t  command;
     uint16_t register_addr;
-    uint8_t  special_data[MODBUS_MESSAGE_DATA_SIZE];
     uint16_t crc;
 } modbus_request_message_t;
 
@@ -90,12 +78,11 @@ typedef struct _modbus_response_message_t {
     uint8_t  command;
     uint16_t register_addr;
     uint8_t  data_len;
-    uint8_t  data_resp[MODBUS_MESSAGE_DATA_SIZE];
     uint16_t crc;
 } modbus_response_message_t;
 
 
-#define MODBUS_RESPONSE_MESSAGE_SIZE  ((uint16_t)(MAX(sizeof(struct _modbus_response_message_t), sizeof(struct _modbus_request_message_t))))
+#define MODBUS_RESPONSE_MESSAGE_SIZE  ((uint16_t)(MB_MAX(sizeof(struct _modbus_response_message_t), sizeof(struct _modbus_request_message_t)) + MODBUS_MESSAGE_DATA_SIZE))
 
 
 uint16_t modbus_crc16(const uint8_t* data, uint16_t len);

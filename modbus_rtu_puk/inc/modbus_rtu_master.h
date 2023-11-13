@@ -45,6 +45,7 @@ extern "C" {
         modbus_response_message_t data_resp;
 
         uint16_t response_bytes_len;
+        uint8_t special_data[MODBUS_MESSAGE_DATA_SIZE];
         uint8_t response_bytes[MODBUS_RESPONSE_MESSAGE_SIZE];
     } modbus_master_state_t;
 

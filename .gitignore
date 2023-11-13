@@ -470,5 +470,6 @@ x64/*
 *.vcxproj*
 bin/
 build/
+*modbus_settings.h
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,c
