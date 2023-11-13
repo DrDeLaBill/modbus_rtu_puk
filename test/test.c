@@ -11,12 +11,14 @@
 #include "modbus_rtu_master.h"
 
 
-#if _WIN32 && __GNUC__
+#if _WIN32
 #include <Windows.h>
 #endif
 
-#define SLAVE_ID 0x01
-#define DETAILS  false
+
+#define SLAVE_ID (0x01)
+#define DETAILS  (false)
+
 
 // Master
 void request_data_sender(uint8_t* data, uint32_t len);
@@ -28,7 +30,7 @@ void response_data_handler(uint8_t* data, uint32_t len);
 void slave_internal_error_handler(void);
 
 // Tests
-void print_test_name(const char* name, uint16_t counter);
+void print_test_name(const char* format, uint16_t counter);
 void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t conunter, uint32_t registers_count);
 void print_error(char* text);
 void print_success(char* text);
@@ -53,7 +55,7 @@ int main(void)
 
     uint16_t counter = 1;
     /* READ OUTPUT COILS BEGIN */
-#ifdef __GNUC__
+#if !SDCC
     printf("\nREAD OUTPUT COILS TESTS:\n");
 #endif
     base_read_tests(modbus_master_read_coils, counter, MODBUS_SLAVE_OUTPUT_COILS_COUNT);
@@ -73,7 +75,7 @@ int main(void)
 
 
     /* READ INPUT COILS BEGIN */
-#ifdef __GNUC__
+#if !SDCC
     printf("\nREAD INPUT COILS TESTS:\n");
 #endif
     counter = 1;
@@ -94,7 +96,7 @@ int main(void)
 
 
     /* READ INPUT REGISTERS BEGIN */
-#ifdef __GNUC__
+#if !SDCC
     printf("\nREAD INPUT REGISTERS TESTS:\n");
 #endif
     counter = 1;
@@ -115,7 +117,7 @@ int main(void)
 
 
     /* READ OUTPUT REGISTERS BEGIN */
-#ifdef __GNUC__
+#if !SDCC
     printf("\nREAD OUTPUT REGISTERS TESTS:\n");
 #endif
     counter = 1;
@@ -136,7 +138,7 @@ int main(void)
 
 
     /* WRITE SINGLE COIL BEGIN */
-#ifdef __GNUC__
+#if !SDCC
     printf("\nWRITE OUTPUT COIL TEST:\n");
 #endif
     const uint8_t test_read_coils_25[] = { 0x00, 0x01 };
@@ -150,7 +152,7 @@ int main(void)
 
 
     /* WRITE SINGLE REGISTER BEGIN */
-#ifdef __GNUC__
+#if !SDCC
     printf("\nWRITE OUTPUT REGISTER TEST:\n");
 #endif
     const uint8_t test_read_coils_26[] = {0x01, 0x02 };
@@ -165,7 +167,7 @@ int main(void)
 
     /* WRITE MULTIPLE COIL BEGIN */
     counter = 1;
-#ifdef __GNUC__
+#if !SDCC
     printf("\nWRITE MULTIPLE OUTPUT COIL TEST:\n");
 #endif
     print_test_name("%u: Test write four registers", counter++);
@@ -188,7 +190,7 @@ int main(void)
 
     /* WRITE MULTIPLE REGISTER BEGIN */
     counter = 1;
-#ifdef __GNUC__
+#if !SDCC
     printf("\nWRITE MULTIPLE OUTPUT REGISTER TEST:\n");
 #endif
     print_test_name("%u: Test write two registers", counter++);
@@ -215,7 +217,7 @@ int main(void)
 
     modbus_slave_clear_data();
 
-#ifdef __GNUC__
+#if !SDCC
     printf("\nERRORS TEST:\n");
 #endif
     print_test_name("%u: Trash request", counter++);
@@ -304,72 +306,57 @@ int main(void)
 
 void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t counter, uint32_t registers_count)
 {
-#ifdef __GNUC__
     print_test_name("%u: Test read first", counter++);
-#endif
     const uint8_t test_read_coils_01[] = { 0x00, 0x00 };
     memcpy(expected_master_result, test_read_coils_01, sizeof(test_read_coils_01));
     expected_master_result_len = sizeof(test_read_coils_01);
     read_func(SLAVE_ID, 0, 1);
     modbus_slave_clear_data();
 
-#ifdef __GNUC__
     print_test_name("%u: Test read last", counter++);
-#endif
     const uint8_t test_read_coils_02[] = { 0x00, 0x00 };
     memcpy(expected_master_result, test_read_coils_02, sizeof(test_read_coils_02));
     expected_master_result_len = sizeof(test_read_coils_02);
     read_func(SLAVE_ID, registers_count - 1, 1);
     modbus_slave_clear_data();
 
-#ifdef __GNUC__
     print_test_name("%u: Test read unavailable", counter++);
-#endif
     wait_error = true;
     read_func(SLAVE_ID, registers_count, 1);
     wait_error = false;
     modbus_slave_clear_data();
 
-#ifdef __GNUC__
     print_test_name("%u: Test read all", counter++);
-#endif
     const uint8_t test_read_coils_04[MODBUS_MESSAGE_DATA_SIZE] = { 0x00, 0x00 };
     memcpy(expected_master_result, test_read_coils_04, sizeof(test_read_coils_04));
     expected_master_result_len = sizeof(test_read_coils_04);
     read_func(SLAVE_ID, 0, registers_count);
     modbus_slave_clear_data();
 
-#ifdef __GNUC__
     print_test_name("%u: Test read unavailable", counter++);
-#endif
     wait_error = true;
     read_func(SLAVE_ID, registers_count / 2, registers_count);
     wait_error = false;
     modbus_slave_clear_data();
 }
 
-void print_test_name(const char* name, uint16_t counter)
+void print_test_name(const char* format, uint16_t counter)
 {
-#ifdef __GNUC__
-    printf(name, counter);
-#if DETAILS
+#if !SDCC && DETAILS
+    printf(format, counter);
     printf("\n");
-#else
     printf(" ");
-#endif
 #endif
 }
 
 void request_data_sender(uint8_t* data, uint32_t len)
 {
-#ifdef __GNUC__
-#if DETAILS
+#if !SDCC && DETAILS
     printf("SENDED  : ");
     for (int i = 0; i < len; i++) {
         printf("%02x ", data[i]);
     }
     printf("\n");
-#endif
 #endif
     for (int i = 0; i < len; i++) {
         if (response_ready) {
@@ -384,7 +371,7 @@ void response_packet_handler(modbus_response_t* packet)
 {
     response_ready = true;
     if (packet->status != MODBUS_NO_ERROR) {
-#ifdef __GNUC__
+#if !SDCC
         char error[12] = { 0 };
         snprintf(error, sizeof(error) - 1, "ERROR: %02x", packet->status);
         print_error(error);
@@ -392,8 +379,7 @@ void response_packet_handler(modbus_response_t* packet)
         test_error = (wait_error ? test_error : true);
         return;
     }
-#ifdef __GNUC__
-#if DETAILS
+#if !SDCC && DETAILS
     printf("EXPECTED: ");
     for (int i = 0; i < expected_master_result_len; i++) {
         printf("%02x ", expected_master_result[i]);
@@ -403,7 +389,6 @@ void response_packet_handler(modbus_response_t* packet)
         printf("%02x %02x ", (uint8_t)(packet->response[i]>> 8), (uint8_t)(packet->response[i]));
     }
     printf("\n");
-#endif
 #endif
 
     for (uint16_t i = 0; i < expected_master_result_len; i+=2) {
@@ -439,7 +424,7 @@ void slave_internal_error_handler(void)
 
 void print_error(char* text)
 {
-#ifdef __GNUC__
+#if !SDCC
 #if _WIN32
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (wait_error ? FOREGROUND_GREEN : FOREGROUND_RED));
 #elif __linux__
@@ -456,7 +441,7 @@ void print_error(char* text)
 
 void print_success(char* text)
 {
-#ifdef __GNUC__
+#if !SDCC
 #if _WIN32
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (wait_error ? FOREGROUND_RED : FOREGROUND_GREEN));
 #elif __linux__

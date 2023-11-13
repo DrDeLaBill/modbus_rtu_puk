@@ -55,6 +55,7 @@ modbus_master_state_t mb_master_state = {
 	.response_byte_handler = _mb_ms_fsm_response_slave_id,
 	.data_req = {0},
 	.data_resp = {0},
+	.special_data = {0},
 
 	.response_bytes_len = 0,
 	.response_bytes = {0}
@@ -148,7 +149,7 @@ void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, con
 	}
 
 	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
-	uint16_t counter = 0;
+	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
 	request[counter++] = slave_id;
@@ -160,25 +161,25 @@ void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, con
 	request[counter++] = (uint8_t)(reg_addr >> 8);
 	request[counter++] = (uint8_t)(reg_addr);
 
-	if (reg_count > sizeof(mb_master_state.data_req.special_data)) {
+	if (reg_count > sizeof(mb_master_state.special_data)) {
 		_mb_ms_do_internal_error();
 		return;
 	}
 
 	uint8_t spec_data_counter = 0;
-	mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(reg_count >> 8);
-	mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(reg_count);
+	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(reg_count >> 8);
+	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(reg_count);
 	request[counter++] = (uint8_t)(reg_count >> 8);
 	request[counter++] = (uint8_t)(reg_count);
 
 	uint8_t bytes_count = (reg_count / 8) + (reg_count % 8 > 0 ? 1 : 0);
-	mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(bytes_count);
+	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(bytes_count);
 	request[counter++] = (uint8_t)(bytes_count);
 
 	for (uint8_t i = 0; i < reg_count; i++) {
 		uint8_t tmp_data = ((data[i] ? 1 : 0) << (i % 8));
 
-		mb_master_state.data_req.special_data[spec_data_counter + i / 8] |= tmp_data;
+		mb_master_state.special_data[spec_data_counter + i / 8] |= tmp_data;
 		request[counter + i / 8] |= tmp_data;
 	}
 	uint8_t count = reg_count / 8 + (reg_count % 8 ? 1 : 0);
@@ -206,7 +207,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 	}
 
 	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
-	uint16_t counter = 0;
+	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
 	request[counter++] = slave_id;
@@ -218,24 +219,24 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 	request[counter++] = (uint8_t)(reg_addr >> 8);
 	request[counter++] = (uint8_t)(reg_addr);
 
-	if (reg_count * sizeof(uint16_t) > sizeof(mb_master_state.data_req.special_data)) {
+	if (reg_count * sizeof(uint16_t) > sizeof(mb_master_state.special_data)) {
 		_mb_ms_do_internal_error();
 		return;
 	}
 
 	uint8_t spec_data_counter = 0;
-	mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(reg_count >> 8);
-	mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(reg_count);
+	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(reg_count >> 8);
+	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(reg_count);
 	request[counter++] = (uint8_t)(reg_count >> 8);
 	request[counter++] = (uint8_t)(reg_count);
 
 	uint8_t bytes_count = reg_count * sizeof(uint16_t);
-	mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(bytes_count);
+	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(bytes_count);
 	request[counter++] = (uint8_t)(bytes_count);
 
 	for (uint8_t i = 0; i < reg_count; i++) {
-		mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(data[i] >> 8);
-		mb_master_state.data_req.special_data[spec_data_counter++] = (uint8_t)(data[i]);
+		mb_master_state.special_data[spec_data_counter++] = (uint8_t)(data[i] >> 8);
+		mb_master_state.special_data[spec_data_counter++] = (uint8_t)(data[i]);
 		request[counter++] = (uint8_t)(data[i] >> 8);
 		request[counter++] = (uint8_t)(data[i]);
 	}
@@ -256,7 +257,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_addr, uint16_t spec_data)
 {
 	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
-	uint16_t counter = 0;
+	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
 	request[counter++] = slave_id;
@@ -268,8 +269,8 @@ void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_
 	request[counter++] = (uint8_t)(reg_addr >> 8);
 	request[counter++] = (uint8_t)(reg_addr);
 
-	mb_master_state.data_req.special_data[0] = (uint8_t)(spec_data >> 8);
-	mb_master_state.data_req.special_data[1] = (uint8_t)(spec_data);
+	mb_master_state.special_data[0] = (uint8_t)(spec_data >> 8);
+	mb_master_state.special_data[1] = (uint8_t)(spec_data);
 	request[counter++] = (uint8_t)(spec_data >> 8);
 	request[counter++] = (uint8_t)(spec_data);
 
@@ -343,6 +344,7 @@ void _mb_ms_reset_data(void)
 {
 	memset((uint8_t*)&mb_master_state.data_req, 0, sizeof(mb_master_state.data_req));
 	memset((uint8_t*)&mb_master_state.data_resp, 0, sizeof(mb_master_state.data_resp));
+	memset((uint8_t*)&mb_master_state.special_data, 0, sizeof(mb_master_state.special_data));
 	memset((uint8_t*)&mb_master_state.response_bytes, 0, sizeof(mb_master_state.response_bytes));
 
 	mb_master_state.response_byte_handler = _mb_ms_fsm_response_slave_id;
@@ -361,20 +363,20 @@ void _mb_ms_do_internal_error(void)
 void _mb_ms_make_read_discrete_packet(modbus_response_t* packet)
 {
 	for (uint16_t i = 0; i < mb_master_state.data_resp.data_len; i++) {
-		packet->response[i] = mb_master_state.data_resp.data_resp[i];
+		packet->response[i] = mb_master_state.special_data[i];
 	}
 }
 
 void _mb_ms_make_read_analog_packet(modbus_response_t* packet)
 {
 	for (uint16_t i = 0; i < mb_master_state.data_resp.data_len; i += 2) {
-		packet->response[i / 2] = (mb_master_state.data_resp.data_resp[i] << 8) | (mb_master_state.data_resp.data_resp[i + 1]);
+		packet->response[i / 2] = (mb_master_state.special_data[i] << 8) | (mb_master_state.special_data[i + 1]);
 	}
 }
 
 void _mb_ms_make_write_packet(modbus_response_t* packet)
 {
-	packet->response[0] = (mb_master_state.data_resp.data_resp[0] << 8) | (mb_master_state.data_resp.data_resp[1]);
+	packet->response[0] = (mb_master_state.special_data[0] << 8) | (mb_master_state.special_data[1]);
 }
 
 void _mb_ms_fsm_response_slave_id(uint8_t byte)
@@ -431,13 +433,13 @@ void _mb_ms_fsm_response_special_data(uint8_t byte)
 		return;
 	}
 
-	if (mb_master_state.data_counter > sizeof(mb_master_state.data_resp.data_resp)) {
+	if (mb_master_state.data_counter > sizeof(mb_master_state.special_data)) {
 		_mb_ms_do_internal_error();
 		_mb_ms_reset_data();
 		return;
 	}
 
-	mb_master_state.data_resp.data_resp[mb_master_state.data_counter - 1] = byte;
+	mb_master_state.special_data[mb_master_state.data_counter - 1] = byte;
 
 
 do_count_special_data:
@@ -449,7 +451,7 @@ do_count_special_data:
 
 void _mb_ms_fsm_response_error(uint8_t byte)
 {
-	mb_master_state.data_resp.data_resp[0] = byte;
+	mb_master_state.special_data[0] = byte;
 	mb_master_state.data_counter = 0;
 	mb_master_state.response_byte_handler = _mb_ms_fsm_response_crc;
 }
@@ -575,7 +577,9 @@ register_type_t _mb_ms_get_request_register_type()
 {
 
 	register_type_t  register_type = 0;
+#if MODBUS_MASTER_INPUT_COILS_COUNT | MODBUS_MASTER_OUTPUT_COILS_COUNT | MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT | MODBUS_MASTER_INPUT_REGISTERS_COUNT
 	modbus_command_t command       = mb_master_state.data_req.command;
+#endif
 #if MODBUS_MASTER_INPUT_COILS_COUNT
 	if (command == MODBUS_READ_INPUT_STATUS) {
 		register_type = MODBUS_REGISTER_DISCRETE_INPUT_COILS;

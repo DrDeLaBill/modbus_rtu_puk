@@ -1,8 +1,6 @@
-# Copyright © 2023 Georgy E. All rights reserved.
+cmake_minimum_required(VERSION 3.27)
 
-if (MODE_SDCC)
-    message("- Enable SDCC")
-	
+if("${MODE_SDCC}" STREQUAL "ON")	
     # the name of the target operating system
     SET(CMAKE_SYSTEM_NAME Generic)
 
@@ -14,7 +12,7 @@ if (MODE_SDCC)
     # SET(CMAKE_FIND_ROOT_PATH "C:/SDCC")
 
     SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-    SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRIRY ONLY)
+    SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
     SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
     # set proper linker flags
