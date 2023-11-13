@@ -27,7 +27,7 @@ jobs:
         sudo apt-get -y install sdcc
 
     - name: Configure project
-      working-directory: ${{github.workspace}}/modbus_rtu_pik/inc
+      working-directory: ${{github.workspace}}/modbus_rtu_puk/inc
       run: |
         cp ./modbus_settings.example.h ./modbus_settings.h
 
