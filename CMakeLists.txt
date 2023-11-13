@@ -1,22 +1,14 @@
-# Copyright © 2023 Georgy E. All rights reserved.
-
 cmake_minimum_required(VERSION 3.27)
 
-project("cmake_test" VERSION 1.0 LANGUAGES C)
+project(modbusrtutest VERSION 0.0.2 LANGUAGES C)
 
-if (MODE_SDCC)
-    message("- SDCC mode")
+add_subdirectory(modbus_rtu_puk)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --model-large --stack-auto")
-else()
-    message("- GCC mode")
-    
-    set(CMAKE_C_COMPILER gcc)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    option(MODBUS_TEST "Enable modbus_rtu_puk tests." ON)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+    if (MODBUS_TEST)
+        enable_testing()
+        add_subdirectory(test)
+    endif()
 endif()
-
-file(GLOB CSRC "./src/*.c")
-
-add_executable(${PROJECT_NAME} ${CSRC})
-

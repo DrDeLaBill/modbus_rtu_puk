@@ -67,6 +67,7 @@ modbus_slave_state_t mb_slave_state = {
     .request_byte_handler = _mb_sl_fsm_request_slave_id,
     .data_req = {0},
     .data_resp = {0},
+	.special_data = {0},
     .data_handler_counter = 0,
     .is_error_response = false,
 
@@ -244,7 +245,7 @@ void _mb_sl_make_error_response(modbus_error_types_t error_type)
 {
     mb_slave_state.is_error_response = true;
     mb_slave_state.data_resp.command = mb_slave_state.data_req.command | MODBUS_ERROR_COMMAND_CODE;
-    mb_slave_state.data_resp.data_resp[0] = error_type;
+    mb_slave_state.special_data[0] = error_type;
 }
 
 void _mb_sl_send_response(void)
@@ -259,9 +260,9 @@ void _mb_sl_send_response(void)
     data[counter++] = mb_slave_state.data_resp.id;
     data[counter++] = mb_slave_state.data_resp.command;
     if (mb_slave_state.is_error_response) {
-        data[counter++] = mb_slave_state.data_resp.data_resp[0];
+        data[counter++] = mb_slave_state.special_data[0];
     } else {
-        memcpy(data + counter, mb_slave_state.data_resp.data_resp, mb_slave_state.data_resp.data_len);
+        memcpy(data + counter, mb_slave_state.special_data, mb_slave_state.data_resp.data_len);
         counter += mb_slave_state.data_resp.data_len;
     }
     uint16_t crc = modbus_crc16(data, counter);
@@ -301,7 +302,7 @@ void _mb_sl_write_multiple_registers(void)
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_FORCE_MULTIPLE_COILS) {
         for (uint8_t i = 0; i < count; i++) {
-            bool value = ((mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT] >> i) & 0x01);
+            bool value = ((mb_slave_state.special_data[SPECIAL_DATA_META_COUNT] >> i) & 0x01);
             mb_discrete_output_coils[mb_slave_state.data_req.register_addr + i] = value > 0;
         }
     }
@@ -309,8 +310,8 @@ void _mb_sl_write_multiple_registers(void)
 #if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_PRESET_MULTIPLE_REGISTERS) {
         for (uint8_t i = 0; i < count * 2; i += 2) {
-            uint16_t value = (uint16_t)mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT + i] << 8 |
-                (uint16_t)mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT + i + 1];
+            uint16_t value = (uint16_t)mb_slave_state.special_data[SPECIAL_DATA_META_COUNT + i] << 8 |
+                (uint16_t)mb_slave_state.special_data[SPECIAL_DATA_META_COUNT + i + 1];
             mb_analog_output_holding_registers[mb_slave_state.data_req.register_addr + i / 2] = value;
         }
     }
@@ -321,6 +322,7 @@ void modbus_slave_clear_data(void)
 {
     memset((uint8_t*)&mb_slave_state.data_req, 0, sizeof(mb_slave_state.data_req));
     memset((uint8_t*)&mb_slave_state.data_resp, 0, sizeof(mb_slave_state.data_resp));
+    memset((uint8_t*)&mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
     memset(mb_slave_state.req_data_bytes, 0, sizeof(mb_slave_state.req_data_bytes));
     mb_slave_state.req_data_bytes_idx = 0;
 
@@ -343,28 +345,30 @@ void _mb_sl_make_read_response(void)
     uint8_t req_data_len = _mb_sl_get_special_data_first_value();
 
     uint8_t counter      = 0;
+
+    memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
     while (counter < req_data_len) {
         uint16_t cur_idx = mb_slave_state.data_req.register_addr + counter;
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
         if (command == MODBUS_READ_COILS) {
-            mb_slave_state.data_resp.data_resp[1 + (counter / 8)] |= (mb_discrete_output_coils[cur_idx] << (cur_idx % 8));
+            mb_slave_state.special_data[1 + (counter / 8)] |= (mb_discrete_output_coils[cur_idx] << (cur_idx % 8));
         }
 #endif
 #if MODBUS_SLAVE_INPUT_COILS_COUNT
         if (command == MODBUS_READ_INPUT_STATUS) {
-            mb_slave_state.data_resp.data_resp[1 + (counter / 8)] |= (mb_discrete_input_coils[cur_idx] << (cur_idx % 8));
+            mb_slave_state.special_data[1 + (counter / 8)] |= (mb_discrete_input_coils[cur_idx] << (cur_idx % 8));
         }
 #endif
 #if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
         if (command == MODBUS_READ_HOLDING_REGISTERS) {
-            mb_slave_state.data_resp.data_resp[1 + counter * 2] = mb_analog_output_holding_registers[cur_idx] >> 8;
-            mb_slave_state.data_resp.data_resp[1 + counter * 2 + 1] = mb_analog_output_holding_registers[cur_idx];
+            mb_slave_state.special_data[1 + counter * 2] = mb_analog_output_holding_registers[cur_idx] >> 8;
+            mb_slave_state.special_data[1 + counter * 2 + 1] = mb_analog_output_holding_registers[cur_idx];
         }
 #endif
 #if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
         if (command == MODBUS_READ_INPUT_REGISTERS) {
-            mb_slave_state.data_resp.data_resp[1 + counter * 2] = mb_analog_input_registers[cur_idx] >> 8;
-            mb_slave_state.data_resp.data_resp[1 + counter * 2 + 1] = mb_analog_input_registers[cur_idx];
+            mb_slave_state.special_data[1 + counter * 2] = mb_analog_input_registers[cur_idx] >> 8;
+            mb_slave_state.special_data[1 + counter * 2 + 1] = mb_analog_input_registers[cur_idx];
         }
 #endif
         counter++;
@@ -378,29 +382,29 @@ void _mb_sl_make_read_response(void)
         resp_data_len = counter;
     }
     mb_slave_state.data_resp.data_len     = 1 + resp_data_len;
-    mb_slave_state.data_resp.data_resp[0] = resp_data_len;
+    mb_slave_state.special_data[0] = resp_data_len;
 }
 
 void _mb_sl_make_write_single_response(void)
 {
     uint8_t counter = 0;
 
-    uint8_t command = mb_slave_state.data_req.command;
     uint16_t reg_addr = mb_slave_state.data_req.register_addr;
 
-    mb_slave_state.data_resp.data_resp[counter++] = reg_addr >> 8;
-    mb_slave_state.data_resp.data_resp[counter++] = reg_addr;
+    mb_slave_state.special_data[counter++] = reg_addr >> 8;
+    mb_slave_state.special_data[counter++] = reg_addr;
 
+    memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL) {
-        mb_slave_state.data_resp.data_resp[counter++] = mb_discrete_output_coils[reg_addr] >> 8;
-        mb_slave_state.data_resp.data_resp[counter++] = mb_discrete_output_coils[reg_addr];
+        mb_slave_state.special_data[counter++] = mb_discrete_output_coils[reg_addr] >> 8;
+        mb_slave_state.special_data[counter++] = mb_discrete_output_coils[reg_addr];
     }
 #endif
 #if MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_PRESET_SINGLE_REGISTER) {
-        mb_slave_state.data_resp.data_resp[counter++] = mb_analog_output_holding_registers[reg_addr] >> 8;
-        mb_slave_state.data_resp.data_resp[counter++] = mb_analog_output_holding_registers[reg_addr];
+        mb_slave_state.special_data[counter++] = mb_analog_output_holding_registers[reg_addr] >> 8;
+        mb_slave_state.special_data[counter++] = mb_analog_output_holding_registers[reg_addr];
     }
 #endif
 
@@ -415,10 +419,12 @@ void _mb_sl_make_write_multiple_response(void)
 
     uint16_t reg_addr = mb_slave_state.data_req.register_addr;
 
-    mb_slave_state.data_resp.data_resp[counter++] = reg_addr >> 8;
-    mb_slave_state.data_resp.data_resp[counter++] = reg_addr;
-    mb_slave_state.data_resp.data_resp[counter++] = written_count >> 8;
-    mb_slave_state.data_resp.data_resp[counter++] = written_count;
+    memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
+
+    mb_slave_state.special_data[counter++] = reg_addr >> 8;
+    mb_slave_state.special_data[counter++] = reg_addr;
+    mb_slave_state.special_data[counter++] = written_count >> 8;
+    mb_slave_state.special_data[counter++] = written_count;
 
     mb_slave_state.data_resp.data_len = counter;
 }
@@ -477,11 +483,11 @@ void _mb_sl_fsm_request_special_data(uint8_t byte)
         goto do_count_special_data;
     }
 
-    if (mb_slave_state.data_handler_counter > sizeof(mb_slave_state.data_req.special_data)) {
+    if (mb_slave_state.data_handler_counter > sizeof(mb_slave_state.special_data)) {
         goto do_count_special_data;
     }
 
-    mb_slave_state.data_req.special_data[mb_slave_state.data_handler_counter - 1] = byte;
+    mb_slave_state.special_data[mb_slave_state.data_handler_counter - 1] = byte;
 
 
 do_count_special_data:
@@ -494,7 +500,7 @@ do_count_special_data:
     }
 
     if (_mb_sl_is_write_multiple_reg_command()) {
-        needed_count_bytes = SPECIAL_DATA_META_COUNT + mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT - 1];
+        needed_count_bytes = SPECIAL_DATA_META_COUNT + mb_slave_state.special_data[SPECIAL_DATA_META_COUNT - 1];
         needed_count       = SPECIAL_DATA_VALUE_SIZE + 1;
     }
 
@@ -530,7 +536,7 @@ void _mb_sl_fsm_request_crc(uint8_t byte)
         mb_slave_state.request_byte_handler = _mb_sl_fsm_request_slave_id;
         goto do_reset_data;
     }
-       
+
     uint16_t crc = modbus_crc16(mb_slave_state.req_data_bytes, mb_slave_state.req_data_bytes_idx - sizeof(uint16_t));
     if (mb_slave_state.data_req.crc != crc) {
         mb_slave_state.is_error_response = true;
@@ -594,18 +600,18 @@ bool _mb_sl_check_request_register_addr(void)
 bool _mb_sl_check_request_registers_count(void)
 {
     uint16_t reg_count = _mb_sl_get_needed_registers_count();
-    uint8_t data_count = mb_slave_state.data_req.special_data[SPECIAL_DATA_META_COUNT - 1];
+    uint8_t data_count = mb_slave_state.special_data[SPECIAL_DATA_META_COUNT - 1];
     uint16_t reg_addr  = mb_slave_state.data_req.register_addr;
 
     return reg_count > 0
         && reg_addr + reg_count <= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())
-        && SPECIAL_DATA_META_COUNT + data_count <= sizeof(mb_slave_state.data_req.special_data);
+        && SPECIAL_DATA_META_COUNT + data_count <= sizeof(mb_slave_state.special_data);
 }
 
 uint16_t _mb_sl_get_special_data_first_value(void)
 {
-    uint8_t regh = mb_slave_state.data_req.special_data[SPECIAL_DATA_REGISTERS_COUNT_IDX];
-    uint8_t regl = mb_slave_state.data_req.special_data[SPECIAL_DATA_REGISTERS_COUNT_IDX + 1];
+    uint8_t regh = mb_slave_state.special_data[SPECIAL_DATA_REGISTERS_COUNT_IDX];
+    uint8_t regl = mb_slave_state.special_data[SPECIAL_DATA_REGISTERS_COUNT_IDX + 1];
     return (uint16_t)(((uint16_t)regh) << 8) + (uint16_t)regl;
 }
 

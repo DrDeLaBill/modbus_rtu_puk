@@ -1,4 +1,4 @@
-# Copyright © 2023 Georgy E. All rights reserved.
+option(MODE_SDCC "SDCC mode." OFF)
 
 if (MODE_SDCC)
     message("- Enable SDCC")
@@ -19,4 +19,6 @@ if (MODE_SDCC)
 
     # set proper linker flags
     SET(CMAKE_EXE_LINKER_FLAGS "--out-fmt-ihx" CACHE STRING "Linker flags" FORCE)
+    
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --model-large --stack-auto")
 endif()
