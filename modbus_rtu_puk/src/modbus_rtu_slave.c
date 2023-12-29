@@ -1,8 +1,5 @@
-/*
- *
- * Copyright © 2023 Georgy E. All rights reserved.
- *
- */
+/* Copyright © 2023 Georgy E. All rights reserved. */
+
 #include "modbus_rtu_slave.h"
 
 #include <string.h>
@@ -605,7 +602,7 @@ bool _mb_sl_check_request_registers_count(void)
 
     return reg_count > 0
         && reg_addr + reg_count <= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())
-        && SPECIAL_DATA_META_COUNT + data_count <= sizeof(mb_slave_state.special_data);
+        && (unsigned int)(SPECIAL_DATA_META_COUNT + data_count) <= (unsigned int)sizeof(mb_slave_state.special_data);
 }
 
 uint16_t _mb_sl_get_special_data_first_value(void)

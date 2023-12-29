@@ -1,8 +1,5 @@
-/*
- *
- * Copyright © 2023 Georgy E. All rights reserved.
- *
- */
+/* Copyright © 2023 Georgy E. All rights reserved. */
+
 #ifndef _MODBUS_SETTINGS_EXAMPLE_H_
 #define _MODBUS_SETTINGS_EXAMPLE_H_
 
