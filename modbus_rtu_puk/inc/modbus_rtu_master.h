@@ -1,8 +1,5 @@
-/*
- *
- * Copyright © 2023 Georgy E. All rights reserved.
- *
- */
+/* Copyright © 2023 Georgy E. All rights reserved. */
+
 #ifndef INC_MODBUS_RTU_MASTER_H_
 #define INC_MODBUS_RTU_MASTER_H_
 
