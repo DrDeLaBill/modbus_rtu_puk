@@ -547,6 +547,7 @@ bool _mb_ms_check_response_command(void)
 
 uint16_t _mb_ms_get_registers_count(register_type_t register_type)
 {
+	(void)register_type;
 #if MODBUS_MASTER_INPUT_COILS_COUNT
 	if (register_type == MODBUS_REGISTER_DISCRETE_INPUT_COILS) {
 		return MODBUS_MASTER_INPUT_COILS_COUNT;

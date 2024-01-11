@@ -147,6 +147,7 @@ void modbus_slave_set_register_value(register_type_t register_type, uint16_t reg
         _mb_sl_do_internal_error();
         return;
     }
+    (void)value;
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (register_type == MODBUS_REGISTER_DISCRETE_OUTPUT_COILS) {
         mb_discrete_output_coils[register_id] = value > 0;
@@ -346,6 +347,7 @@ void _mb_sl_make_read_response(void)
     memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
     while (counter < req_data_len) {
         uint16_t cur_idx = mb_slave_state.data_req.register_addr + counter;
+        (void)cur_idx;
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
         if (command == MODBUS_READ_COILS) {
             mb_slave_state.special_data[1 + (counter / 8)] |= (mb_discrete_output_coils[cur_idx] << (cur_idx % 8));
@@ -629,6 +631,7 @@ uint16_t _mb_sl_get_needed_registers_count(void)
 
 uint16_t _mb_sl_get_registers_count(register_type_t register_type)
 {
+	(void)register_type;
 #if MODBUS_SLAVE_INPUT_COILS_COUNT
     if (register_type == MODBUS_REGISTER_DISCRETE_INPUT_COILS) {
         return MODBUS_SLAVE_INPUT_COILS_COUNT;
@@ -656,6 +659,7 @@ register_type_t _mb_sl_get_request_register_type()
 {
     register_type_t  register_type = 0;
     modbus_command_t command = mb_slave_state.data_req.command;
+    (void)command;
 #if MODBUS_SLAVE_INPUT_COILS_COUNT
     if (command == MODBUS_READ_INPUT_STATUS) {
         register_type = MODBUS_REGISTER_DISCRETE_INPUT_COILS;
