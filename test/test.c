@@ -36,7 +36,7 @@ void print_error(char* text);
 void print_success(char* text);
 
 
-uint8_t expected_master_result[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
+uint8_t expected_master_result[MODBUS_MASTER_MESSAGE_DATA_SIZE] = { 0 };
 uint16_t  expected_master_result_len = 0;
 bool wait_error     = false;
 bool test_error     = false;
@@ -327,7 +327,7 @@ void base_read_tests(void (*read_func) (uint8_t, uint16_t, uint16_t), uint16_t c
     modbus_slave_clear_data();
 
     print_test_name("%u: Test read all", counter++);
-    const uint8_t test_read_coils_04[MODBUS_MESSAGE_DATA_SIZE] = { 0x00, 0x00 };
+    const uint8_t test_read_coils_04[MODBUS_MASTER_MESSAGE_DATA_SIZE] = { 0x00, 0x00 };
     memcpy(expected_master_result, test_read_coils_04, sizeof(test_read_coils_04));
     expected_master_result_len = sizeof(test_read_coils_04);
     read_func(SLAVE_ID, 0, registers_count);
