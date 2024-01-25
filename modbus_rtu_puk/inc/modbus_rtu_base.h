@@ -61,7 +61,8 @@ typedef enum _modbus_error_types_t {
 #define MB_MAX(var1, var2)       ((var1 > var2) ? (var1) : (var2))
 #endif
 
-#define MODBUS_MESSAGE_DATA_SIZE ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_SLAVE_INPUT_COILS_COUNT, MODBUS_SLAVE_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_SLAVE_INPUT_REGISTERS_COUNT, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
+#define MODBUS_SLAVE_MESSAGE_DATA_SIZE  ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_SLAVE_INPUT_COILS_COUNT, MODBUS_SLAVE_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_SLAVE_INPUT_REGISTERS_COUNT, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
+#define MODBUS_MASTER_MESSAGE_DATA_SIZE ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_MASTER_INPUT_COILS_COUNT, MODBUS_MASTER_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_MASTER_INPUT_REGISTERS_COUNT, MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
 typedef struct _modbus_request_message_t {
     uint8_t  id;
     uint8_t  command;
@@ -79,8 +80,8 @@ typedef struct _modbus_response_message_t {
 } modbus_response_message_t;
 
 
-#define MODBUS_RESPONSE_MESSAGE_SIZE  ((uint16_t)(MB_MAX(sizeof(struct _modbus_response_message_t), sizeof(struct _modbus_request_message_t)) + MODBUS_MESSAGE_DATA_SIZE))
-
+#define MODBUS_SLAVE_RESPONSE_MESSAGE_SIZE  ((uint16_t)(MB_MAX(sizeof(struct _modbus_response_message_t), sizeof(struct _modbus_request_message_t)) + MODBUS_SLAVE_MESSAGE_DATA_SIZE))
+#define MODBUS_MASTER_RESPONSE_MESSAGE_SIZE  ((uint16_t)(MB_MAX(sizeof(struct _modbus_response_message_t), sizeof(struct _modbus_request_message_t)) + MODBUS_MASTER_MESSAGE_DATA_SIZE))
 
 uint16_t modbus_crc16(const uint8_t* data, uint16_t len);
 

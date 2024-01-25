@@ -26,8 +26,8 @@ typedef struct _modbus_slave_state_t {
     bool is_error_response;
     
     uint16_t req_data_bytes_idx;
-    uint8_t special_data[MODBUS_MESSAGE_DATA_SIZE];
-    uint8_t req_data_bytes[MODBUS_RESPONSE_MESSAGE_SIZE];
+    uint8_t special_data[MODBUS_SLAVE_MESSAGE_DATA_SIZE];
+    uint8_t req_data_bytes[MODBUS_SLAVE_RESPONSE_MESSAGE_SIZE];
 } modbus_slave_state_t;
 
 

@@ -253,7 +253,7 @@ void _mb_sl_send_response(void)
         return;
     }
 
-    uint8_t data[MODBUS_RESPONSE_MESSAGE_SIZE] = { 0 };
+    uint8_t data[MODBUS_SLAVE_RESPONSE_MESSAGE_SIZE] = { 0 };
     uint16_t counter = 0;
     data[counter++] = mb_slave_state.data_resp.id;
     data[counter++] = mb_slave_state.data_resp.command;
