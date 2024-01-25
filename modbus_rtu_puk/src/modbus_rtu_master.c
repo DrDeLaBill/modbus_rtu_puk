@@ -145,7 +145,7 @@ void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, con
 		return;
 	}
 
-	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
+	uint8_t request[MODBUS_MASTER_MESSAGE_DATA_SIZE] = { 0 };
 	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
@@ -169,21 +169,21 @@ void modbus_master_force_multiple_coils(uint8_t slave_id, uint16_t reg_addr, con
 	request[counter++] = (uint8_t)(reg_count >> 8);
 	request[counter++] = (uint8_t)(reg_count);
 
-	uint8_t bytes_count = (reg_count / 8) + (reg_count % 8 > 0 ? 1 : 0);
+	uint8_t bytes_count = (uint8_t)((reg_count / 8) + (reg_count % 8 > 0 ? 1 : 0));
 	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(bytes_count);
 	request[counter++] = (uint8_t)(bytes_count);
 
 	for (uint8_t i = 0; i < reg_count; i++) {
-		uint8_t tmp_data = ((data[i] ? 1 : 0) << (i % 8));
+		uint8_t tmp_data = (uint8_t)((data[i] ? 1 : 0) << (i % 8));
 
 		mb_master_state.special_data[spec_data_counter + i / 8] |= tmp_data;
 		request[counter + i / 8] |= tmp_data;
 	}
-	uint8_t count = reg_count / 8 + (reg_count % 8 ? 1 : 0);
+	uint8_t count = (uint8_t)(reg_count / 8 + (reg_count % 8 ? 1 : 0));
 	counter += count;
 	spec_data_counter += count;
 
-	uint16_t crc = modbus_crc16(request, counter);
+	uint16_t crc = modbus_crc16(request, (uint16_t)counter);
 	mb_master_state.data_req.crc = crc;
 	request[counter++] = (uint8_t)(crc);
 	request[counter++] = (uint8_t)(crc >> 8);
@@ -203,7 +203,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 		return;
 	}
 
-	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
+	uint8_t request[MODBUS_MASTER_MESSAGE_DATA_SIZE] = { 0 };
 	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
@@ -227,7 +227,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 	request[counter++] = (uint8_t)(reg_count >> 8);
 	request[counter++] = (uint8_t)(reg_count);
 
-	uint8_t bytes_count = reg_count * sizeof(uint16_t);
+	uint8_t bytes_count = (uint8_t)(reg_count * sizeof(uint16_t));
 	mb_master_state.special_data[spec_data_counter++] = (uint8_t)(bytes_count);
 	request[counter++] = (uint8_t)(bytes_count);
 
@@ -238,7 +238,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 		request[counter++] = (uint8_t)(data[i]);
 	}
 
-	uint16_t crc = modbus_crc16(request, counter);
+	uint16_t crc = modbus_crc16(request, (uint16_t)counter);
 	mb_master_state.data_req.crc = crc;
 	request[counter++] = (uint8_t)(crc);
 	request[counter++] = (uint8_t)(crc >> 8);
@@ -253,7 +253,7 @@ void modbus_master_preset_multiple_registers(uint8_t slave_id, uint16_t reg_addr
 
 void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_addr, uint16_t spec_data)
 {
-	uint8_t request[MODBUS_MESSAGE_DATA_SIZE] = { 0 };
+	uint8_t request[MODBUS_MASTER_MESSAGE_DATA_SIZE] = { 0 };
 	uint32_t counter = 0;
 
 	mb_master_state.data_req.id = slave_id;
@@ -271,7 +271,7 @@ void _mb_ms_send_simple_message(uint8_t slave_id, uint8_t command, uint16_t reg_
 	request[counter++] = (uint8_t)(spec_data >> 8);
 	request[counter++] = (uint8_t)(spec_data);
 
-	uint16_t crc = modbus_crc16(request, counter);
+	uint16_t crc = modbus_crc16(request, (uint16_t)counter);
 	mb_master_state.data_req.crc = crc;
 	request[counter++] = (uint8_t)(crc);
 	request[counter++] = (uint8_t)(crc >> 8);
@@ -520,7 +520,7 @@ bool _mb_ms_is_recieved_needed_slave_id(void)
 }
 
 bool _mb_ms_check_response_crc(void) {
-	return mb_master_state.data_resp.crc == modbus_crc16(mb_master_state.response_bytes, mb_master_state.response_bytes_len - sizeof(uint16_t));
+	return mb_master_state.data_resp.crc == modbus_crc16(mb_master_state.response_bytes, (uint16_t)(mb_master_state.response_bytes_len - sizeof(uint16_t)));
 }
 
 bool _mb_ms_check_response_command(void)

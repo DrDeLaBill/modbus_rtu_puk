@@ -28,7 +28,7 @@ typedef struct _modbus_response_t {
 	modbus_error_response_t status;
 	uint8_t slave_id;
 	modbus_command_t command;
-	uint16_t response[MODBUS_RESPONSE_MESSAGE_SIZE];
+	uint16_t response[MODBUS_MASTER_RESPONSE_MESSAGE_SIZE];
 } modbus_response_t;
 
 
@@ -42,8 +42,8 @@ typedef struct _modbus_master_state_t {
 	modbus_response_message_t data_resp;
 
 	uint16_t response_bytes_len;
-	uint8_t special_data[MODBUS_MESSAGE_DATA_SIZE];
-	uint8_t response_bytes[MODBUS_RESPONSE_MESSAGE_SIZE];
+	uint8_t special_data[MODBUS_MASTER_MESSAGE_DATA_SIZE];
+	uint8_t response_bytes[MODBUS_MASTER_RESPONSE_MESSAGE_SIZE];
 } modbus_master_state_t;
 
 
