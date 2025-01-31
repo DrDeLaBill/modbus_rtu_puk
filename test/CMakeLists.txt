@@ -5,14 +5,17 @@ project(modbus_rtu_puk_test VERSION 0.0.1 LANGUAGES C)
 message(STATUS "modbus_rtu_puk tests enabled")
 
 if(MODE_SDCC)
-    file(GLOB ${PROJECT_NAME}_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-    file(GLOB ${PROJECT_NAME}_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/*.c")
+    file(GLOB ${PROJECT_NAME}_HEADERS "${CMAKE_SOURCE_DIR}/*.h")
+    file(GLOB ${PROJECT_NAME}_SOURCES "${CMAKE_SOURCE_DIR}/*.c")
 else()
     file(GLOB ${PROJECT_NAME}_HEADERS "./*.h")
     file(GLOB ${PROJECT_NAME}_SOURCES "./*.c")
 endif()
 set(ALL_SRCS "${${PROJECT_NAME}_SOURCES};${${PROJECT_NAME}_HEADERS}")
-message(STATUS "${ALL_SRCS}")
+
+foreach(src_path ${ALL_SRCS})
+    message(STATUS "${src_path}")
+endforeach()
 
 # Create project
 add_executable(${PROJECT_NAME} ${ALL_SRCS})
