@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(modbusrtupuk VERSION 0.0.2 LANGUAGES C)
+project(modbus_rtu_puk VERSION 0.0.2 LANGUAGES C)
 
 option(MODE_SDCC "SDCC mode." OFF)
 
@@ -11,10 +11,13 @@ endif()
 
 add_subdirectory(modbus_rtu_puk)
 
-if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    option(MODBUS_TEST "Enable modbus_rtu_puk tests." ON)
+if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
+    message(STATUS "modbus_rtu_puk generated as current project")    
+    option(MODBUS_TEST "enable modbus_rtu_puk tests" ON)
 
-    if (MODBUS_TEST)
-        add_subdirectory(test)
-    endif()
+    message(STATUS "enable modbus_rtu_puk testing")
+    
+    add_subdirectory(test)
+else()
+    message(STATUS "modbus_rtu_puk added as a library")
 endif()
