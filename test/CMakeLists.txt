@@ -12,6 +12,7 @@ else()
     file(GLOB ${PROJECT_NAME}_SOURCES "./*.c")
 endif()
 set(ALL_SRCS "${${PROJECT_NAME}_SOURCES};${${PROJECT_NAME}_HEADERS}")
+message(STATUS "${ALL_SRCS}")
 
 # Create project
 add_executable(${PROJECT_NAME} ${ALL_SRCS})
