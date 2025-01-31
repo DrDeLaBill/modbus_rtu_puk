@@ -4,12 +4,11 @@ project(modbus_rtu_puk_test VERSION 0.0.1 LANGUAGES C)
 
 message(STATUS "modbus_rtu_puk tests enabled")
 
+file(GLOB ${PROJECT_NAME}_HEADERS "./*.h")
+file(GLOB ${PROJECT_NAME}_SOURCES "./*.c")
 if(MODE_SDCC)
     file(GLOB ${PROJECT_NAME}_HEADERS "${CMAKE_SOURCE_DIR}/*.h")
     file(GLOB ${PROJECT_NAME}_SOURCES "${CMAKE_SOURCE_DIR}/*.c")
-else()
-    file(GLOB ${PROJECT_NAME}_HEADERS "./*.h")
-    file(GLOB ${PROJECT_NAME}_SOURCES "./*.c")
 endif()
 set(ALL_SRCS "${${PROJECT_NAME}_SOURCES};${${PROJECT_NAME}_HEADERS}")
 

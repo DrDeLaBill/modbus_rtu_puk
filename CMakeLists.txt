@@ -7,6 +7,8 @@ option(MODE_SDCC "SDCC mode." OFF)
 if(MODE_SDCC)
     message(STATUS "project: SDCC MODE - ENABLED")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --model-large --stack-auto")
+else()
+    message(STATUS "project: SDCC MODE - DISABLED")
 endif()
 
 add_subdirectory(modbus_rtu_puk)
