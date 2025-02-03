@@ -20,11 +20,6 @@ jobs:
       run: |
         sudo apt-get -y install sdcc
 
-    - name: Configure project
-      working-directory: ${{github.workspace}}/modbus_rtu_puk/inc
-      run: |
-        cp ./modbus_settings.example.h ./modbus_settings.h
-
     - name: Configure CMake (GCC)
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
