@@ -3,7 +3,7 @@
 </p>
 
 <p align="right">
-  <img alt="Test passing" src="https://github.com/DrDeLaBill/modbus_rtu_puk/workflows/C-Build-Test/badge.svg?branch=main">
+  <img alt="Test passing" src="https://img.shields.io/github/actions/workflow/status/DrDeLaBill/modbus_rtu_puk/build-test.yml?branch=main">
 </p>
 
 Modbus master-slave RTU library for microcontrollers.
