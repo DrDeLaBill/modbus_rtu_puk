@@ -11,7 +11,19 @@ else()
     message(STATUS "project: SDCC MODE - DISABLED")
 endif()
 
-add_subdirectory(modbus_rtu_puk)
+file(GLOB ${PROJECT_NAME}_HEADERS "modbus_rtu_puk/inc/*.h")
+file(GLOB ${PROJECT_NAME}_SOURCES "modbus_rtu_puk/src/*.c")
+set(ALL_SRCS "${${PROJECT_NAME}_SOURCES};${${PROJECT_NAME}_HEADERS}")
+add_library(
+    ${PROJECT_NAME}
+    STATIC 
+    ${ALL_SRCS}
+)
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC
+    "modbus_rtu_puk/inc"
+)
 
 if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     message(STATUS "modbus_rtu_puk generated as current project")    
@@ -22,4 +34,9 @@ if(${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     add_subdirectory(test)
 else()
     message(STATUS "modbus_rtu_puk added as a library")
+
+    target_link_libraries(
+        ${CMAKE_PROJECT_NAME}
+        ${PROJECT_NAME}
+    )
 endif()

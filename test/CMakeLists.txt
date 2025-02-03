@@ -23,11 +23,16 @@ target_include_directories(
     PUBLIC
     "."
 )
+target_include_directories(
+    ${CMAKE_PROJECT_NAME}
+    PUBLIC
+    "."
+)
 
 # Link library
 target_link_libraries(
     ${PROJECT_NAME}
-    modbus_rtu_puk_lib
+    modbus_rtu_puk
 )
 
 # Set project properties

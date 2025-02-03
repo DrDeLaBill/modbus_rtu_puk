@@ -11,7 +11,7 @@ Modbus master-slave RTU library for microcontrollers.
 ### Modbus settings
 
 You need to create ```modbus_settings.h``` in ```./modbus_rtu_puk/src``` path to configurate library registers.
-There is an example of configuration in ```modbus_settings.example.h``` file:
+There is an example of configuration in ```test/modbus_settings.h``` file:
 ```C
 /*************************** MODBUS REGISTER SETTINGS BEGIN ***************************/
 
