@@ -26,6 +26,8 @@ There is an example of configuration in ```test/modbus_settings.h``` file:
 #define MODBUS_MASTER_OUTPUT_COILS_COUNT                (16)    // MODBUS default: 9999
 #define MODBUS_MASTER_INPUT_REGISTERS_COUNT             (16)    // MODBUS default: 9999
 #define MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT    (16)    // MODBUS default: 9999
+/* Maximum expected response size for master (bytes) */
+#define MODBUS_MASTER_MAX_RESPONSE_SIZE                 (2)
 
 /**************************** MODBUS REGISTER SETTINGS END ****************************/
 ```

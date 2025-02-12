@@ -55,14 +55,18 @@ typedef enum _modbus_error_types_t {
 
 
 #ifndef MB_MIN
-#define MB_MIN(var1, var2)       ((var1 < var2) ? (var1) : (var2))
+#   define MB_MIN(var1, var2)       ((var1 < var2) ? (var1) : (var2))
 #endif
 #ifndef MB_MAX
-#define MB_MAX(var1, var2)       ((var1 > var2) ? (var1) : (var2))
+#   define MB_MAX(var1, var2)       ((var1 > var2) ? (var1) : (var2))
 #endif
 
 #define MODBUS_SLAVE_MESSAGE_DATA_SIZE  ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_SLAVE_INPUT_COILS_COUNT, MODBUS_SLAVE_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_SLAVE_INPUT_REGISTERS_COUNT, MODBUS_SLAVE_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
-#define MODBUS_MASTER_MESSAGE_DATA_SIZE ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_MASTER_INPUT_COILS_COUNT, MODBUS_MASTER_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_MASTER_INPUT_REGISTERS_COUNT, MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
+#ifdef MODBUS_MASTER_MAX_RESPONSE_SIZE
+#   define MODBUS_MASTER_MESSAGE_DATA_SIZE MODBUS_MASTER_MAX_RESPONSE_SIZE
+#else
+#   define MODBUS_MASTER_MESSAGE_DATA_SIZE ((sizeof(uint16_t) * MB_MAX(MB_MAX(MODBUS_MASTER_INPUT_COILS_COUNT, MODBUS_MASTER_OUTPUT_COILS_COUNT), MB_MAX(MODBUS_MASTER_INPUT_REGISTERS_COUNT, MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT))) + 1)
+#endif
 typedef struct _modbus_request_message_t {
     uint8_t  id;
     uint8_t  command;

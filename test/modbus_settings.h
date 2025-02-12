@@ -17,6 +17,7 @@
 #define MODBUS_MASTER_INPUT_REGISTERS_COUNT             (16)    // MODBUS default: 9999
 #define MODBUS_MASTER_OUTPUT_HOLDING_REGISTERS_COUNT    (16)    // MODBUS default: 9999
 
+
 /**************************** MODBUS REGISTER SETTINGS END ****************************/
 
 #endif
