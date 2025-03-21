@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "modbus_settings.h"
 #include "modbus_rtu_base.h"
 
 
@@ -99,6 +100,10 @@ void modbus_slave_recieve_data_byte(uint8_t byte)
         _mb_sl_do_internal_error();
         modbus_slave_clear_data();
     }
+    if (mb_slave_state.req_data_bytes_idx >= sizeof(mb_slave_state.req_data_bytes)) {
+    	mb_slave_state.req_data_bytes_idx = 0;
+        modbus_slave_clear_data();
+    }
 }
 
 void modbus_slave_set_slave_id(uint8_t new_slave_id)
@@ -109,13 +114,15 @@ void modbus_slave_set_slave_id(uint8_t new_slave_id)
 
 void modbus_slave_timeout(void)
 {
-    _mb_sl_do_internal_error();
     modbus_slave_clear_data();
 }
 
 uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t register_id)
 {
     if (register_id >= _mb_sl_get_registers_count(register_type)) {
+        _mb_sl_make_error_response(MODBUS_ERROR_ILLEGAL_DATA_ADDRESS);
+        _mb_sl_send_response();
+        modbus_slave_clear_data();
         return 0;
     }
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
@@ -144,7 +151,9 @@ uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t
 void modbus_slave_set_register_value(register_type_t register_type, uint16_t register_id, uint16_t value)
 {
     if (register_id >= _mb_sl_get_registers_count(register_type)) {
-        _mb_sl_do_internal_error();
+        _mb_sl_make_error_response(MODBUS_ERROR_ILLEGAL_DATA_ADDRESS);
+        _mb_sl_send_response();
+        modbus_slave_clear_data();
         return;
     }
     (void)value;
@@ -264,8 +273,8 @@ void _mb_sl_send_response(void)
         counter += mb_slave_state.data_resp.data_len;
     }
     uint16_t crc = modbus_crc16(data, counter);
-    data[counter++] = crc & 0xFF;
-    data[counter++] = crc >> 8;
+    data[counter++] = (uint8_t)(crc & 0xFF);
+    data[counter++] = (uint8_t)(crc >> 8);
 
     mb_slave_state.response_data_handler(data, counter);
 }
@@ -289,7 +298,7 @@ void _mb_sl_write_multiple_registers(void)
     uint16_t count = _mb_sl_get_special_data_first_value();
 
     if (mb_slave_state.data_req.register_addr >= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())) {
-        _mb_sl_do_internal_error();
+        _mb_sl_make_error_response(MODBUS_ERROR_ILLEGAL_DATA_ADDRESS);
         return;
     }
     
@@ -339,10 +348,10 @@ void _mb_sl_do_internal_error(void)
 
 void _mb_sl_make_read_response(void)
 {
-    uint8_t command      = mb_slave_state.data_req.command;
-    uint8_t req_data_len = _mb_sl_get_special_data_first_value();
+    uint8_t command       = mb_slave_state.data_req.command;
+    uint16_t req_data_len = _mb_sl_get_special_data_first_value();
 
-    uint8_t counter      = 0;
+    uint16_t counter      = 0;
 
     memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
     while (counter < req_data_len) {
@@ -366,22 +375,22 @@ void _mb_sl_make_read_response(void)
 #endif
 #if MODBUS_SLAVE_INPUT_REGISTERS_COUNT
         if (command == MODBUS_READ_INPUT_REGISTERS) {
-            mb_slave_state.special_data[1 + counter * 2] = mb_analog_input_registers[cur_idx] >> 8;
-            mb_slave_state.special_data[1 + counter * 2 + 1] = mb_analog_input_registers[cur_idx];
+            mb_slave_state.special_data[1 + counter * 2] = (uint8_t)(mb_analog_input_registers[cur_idx] >> 8);
+            mb_slave_state.special_data[1 + counter * 2 + 1] = (uint8_t)(mb_analog_input_registers[cur_idx]);
         }
 #endif
         counter++;
     }
 
-    uint8_t resp_data_len = 0;
+    uint16_t resp_data_len = 0;
     if (command == MODBUS_READ_HOLDING_REGISTERS || command == MODBUS_READ_INPUT_REGISTERS) {
         resp_data_len = counter * 2;
     }
     else {
         resp_data_len = counter;
     }
-    mb_slave_state.data_resp.data_len     = 1 + resp_data_len;
-    mb_slave_state.special_data[0] = resp_data_len;
+    mb_slave_state.data_resp.data_len = (uint8_t)(1 + resp_data_len);
+    mb_slave_state.special_data[0]    = (uint8_t)resp_data_len;
 }
 
 void _mb_sl_make_write_single_response(void)
@@ -390,8 +399,8 @@ void _mb_sl_make_write_single_response(void)
 
     uint16_t reg_addr = mb_slave_state.data_req.register_addr;
 
-    mb_slave_state.special_data[counter++] = reg_addr >> 8;
-    mb_slave_state.special_data[counter++] = reg_addr;
+    mb_slave_state.special_data[counter++] = (uint8_t)(reg_addr >> 8);
+    mb_slave_state.special_data[counter++] = (uint8_t)(reg_addr);
 
     memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
@@ -420,10 +429,10 @@ void _mb_sl_make_write_multiple_response(void)
 
     memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
 
-    mb_slave_state.special_data[counter++] = reg_addr >> 8;
-    mb_slave_state.special_data[counter++] = reg_addr;
-    mb_slave_state.special_data[counter++] = written_count >> 8;
-    mb_slave_state.special_data[counter++] = written_count;
+    mb_slave_state.special_data[counter++] = (uint8_t)(reg_addr >> 8);
+    mb_slave_state.special_data[counter++] = (uint8_t)(reg_addr);
+    mb_slave_state.special_data[counter++] = (uint8_t)(written_count >> 8);
+    mb_slave_state.special_data[counter++] = (uint8_t)(written_count);
 
     mb_slave_state.data_resp.data_len = counter;
 }
@@ -432,6 +441,10 @@ void _mb_sl_fsm_request_slave_id(uint8_t byte)
 {
     mb_slave_state.data_req.id = byte;
     mb_slave_state.data_handler_counter = 0;
+    if (!_mb_sl_is_recieved_own_slave_id()) {
+    	mb_slave_state.req_data_bytes_idx = 0;
+        return;
+    }
     mb_slave_state.request_byte_handler = _mb_sl_fsm_request_command;
 }
 
@@ -478,7 +491,7 @@ void _mb_sl_fsm_request_special_data(uint8_t byte)
     uint16_t needed_count       = 0;
     uint16_t cur_count          = mb_slave_state.data_handler_counter;
 
-    if (mb_slave_state.data_req.register_addr + _mb_sl_get_needed_registers_count() >= _mb_sl_get_registers_count(_mb_sl_get_request_register_type())) {
+    if (mb_slave_state.data_req.register_addr + _mb_sl_get_needed_registers_count() > _mb_sl_get_registers_count(_mb_sl_get_request_register_type())) {
         goto do_count_special_data;
     }
 
@@ -536,7 +549,10 @@ void _mb_sl_fsm_request_crc(uint8_t byte)
         goto do_reset_data;
     }
 
-    uint16_t crc = modbus_crc16(mb_slave_state.req_data_bytes, mb_slave_state.req_data_bytes_idx - sizeof(uint16_t));
+    uint16_t crc = modbus_crc16(
+		mb_slave_state.req_data_bytes,
+		mb_slave_state.req_data_bytes_idx - (uint16_t)sizeof(mb_slave_state.data_req.crc)
+	);
     if (mb_slave_state.data_req.crc != crc) {
         mb_slave_state.is_error_response = true;
     }

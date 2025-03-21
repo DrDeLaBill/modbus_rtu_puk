@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "modbus_settings.h"
 #include "modbus_rtu_base.h"
 
 
