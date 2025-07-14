@@ -86,7 +86,7 @@ void modbus_master_set_response_packet_handler(void (*response_packet_handler) (
 
 void modbus_master_recieve_data_byte(uint8_t byte)
 {
-	if (mb_master_state.response_bytes_len > sizeof(mb_master_state.response_bytes)) {
+	if (mb_master_state.response_bytes_len >= sizeof(mb_master_state.response_bytes)) {
 		_mb_ms_do_internal_error();
 		_mb_ms_reset_data();
 	}
@@ -96,8 +96,7 @@ void modbus_master_recieve_data_byte(uint8_t byte)
 	if (mb_master_state.response_byte_handler != NULL) {
 		mb_master_state.data_counter++;
 		mb_master_state.response_byte_handler(byte);
-	}
-	else {
+	} else {
 		_mb_ms_do_internal_error();
 		_mb_ms_reset_data();
 	}
