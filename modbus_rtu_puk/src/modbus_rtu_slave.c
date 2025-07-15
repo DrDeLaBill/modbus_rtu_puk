@@ -120,8 +120,6 @@ void modbus_slave_timeout(void)
 uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t register_id)
 {
     if (register_id >= _mb_sl_get_registers_count(register_type)) {
-        _mb_sl_make_error_response(MODBUS_ERROR_ILLEGAL_DATA_ADDRESS);
-        _mb_sl_send_response();
         modbus_slave_clear_data();
         return 0;
     }
@@ -151,8 +149,6 @@ uint16_t modbus_slave_get_register_value(register_type_t register_type, uint16_t
 void modbus_slave_set_register_value(register_type_t register_type, uint16_t register_id, uint16_t value)
 {
     if (register_id >= _mb_sl_get_registers_count(register_type)) {
-        _mb_sl_make_error_response(MODBUS_ERROR_ILLEGAL_DATA_ADDRESS);
-        _mb_sl_send_response();
         modbus_slave_clear_data();
         return;
     }
