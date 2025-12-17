@@ -17,7 +17,7 @@
 
 
 #define SLAVE_ID (0x01)
-#define DETAILS  (false)
+#define DETAILS  (true)
 
 
 // Master
@@ -159,6 +159,7 @@ int main(void)
     memcpy(expected_master_result, test_read_coils_26, sizeof(test_read_coils_26));
     expected_master_result_len = sizeof(test_read_coils_26);
     modbus_master_preset_single_register(SLAVE_ID, 0, 0x0102);
+    modbus_master_preset_single_register(SLAVE_ID, 0x0A, 0x0102);
 
     modbus_slave_clear_data();
     /* WRITE SINGLE REGISTER END */
@@ -352,7 +353,7 @@ void print_test_name(const char* format, uint16_t counter)
 void request_data_sender(uint8_t* data, uint32_t len)
 {
 #if !SDCC && DETAILS
-    printf("SENDED  : ");
+    printf("MS SEND: ");
     for (int i = 0; i < len; i++) {
         printf("%02x ", data[i]);
     }
@@ -404,6 +405,13 @@ void response_packet_handler(modbus_response_t* packet)
 
 void response_data_handler(uint8_t* data, uint32_t len)
 {
+#if !SDCC && DETAILS
+    printf("SL SEND: ");
+    for (int i = 0; i < len; i++) {
+        printf("%02x ", data[i]);
+    }
+    printf("\n");
+#endif
     for (int i = 0; i < len; i++) {
         modbus_master_recieve_data_byte(data[i]);
     }

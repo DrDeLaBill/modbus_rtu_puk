@@ -395,10 +395,11 @@ void _mb_sl_make_write_single_response(void)
 
     uint16_t reg_addr = mb_slave_state.data_req.register_addr;
 
+    memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
+
     mb_slave_state.special_data[counter++] = (uint8_t)(reg_addr >> 8);
     mb_slave_state.special_data[counter++] = (uint8_t)(reg_addr);
 
-    memset(mb_slave_state.special_data, 0, sizeof(mb_slave_state.special_data));
 #if MODBUS_SLAVE_OUTPUT_COILS_COUNT
     if (mb_slave_state.data_req.command == MODBUS_FORCE_SINGLE_COIL) {
         mb_slave_state.special_data[counter++] = mb_discrete_output_coils[reg_addr] >> 8;
